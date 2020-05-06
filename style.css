@@ -1,0 +1,268 @@
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 16;
+  font-weight: 100;
+  background-color: #0f0f13;
+  color: white;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+p {
+  color: white;
+  font-size: 1em;
+  margin: 4px;
+  margin-top: 10px;
+}
+
+a {
+  color: white;
+  text-decoration: underline;
+  font-size: 1em;
+}
+
+a:hover {
+  color: black;
+  background: white;
+}
+
+h1 {
+  color: white;
+  font-size: 1em;
+  font-weight: 100;
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100px;
+  height: 1px;
+  background: white;
+  outline: none;
+  opacity: 1;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+  user-select: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 15px; /* Set a specific slider handle width */
+  height: 15px; /* Slider handle height */
+  background: white; 
+  border: 0px; 
+  border-radius: 50px;
+  cursor: pointer; /* Cursor on hover */
+  user-select: none;
+}
+
+.slider::-moz-range-thumb {
+  width: 15px; /* Set a specific slider handle width */
+  height: 15px; /* Slider handle height */
+  background: white;
+  border: 0px;
+  border-radius: 50px;
+  cursor: pointer; /* Cursor on hover */
+  user-select: none;
+}
+
+.sliderP {
+  margin-bottom: 0px;
+}
+
+.radio
+{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    position: relative;
+    background-color: white;
+    color: black;
+    top: 5px;
+    height: 15px;
+    width: 15px;
+    border: 0;
+    border-radius: 50px;
+    cursor: pointer;
+    outline: none;
+}
+.radio:checked::before
+{
+    position: absolute;
+    font-family: 'Courier New', Courier, monospace;
+    left: 4px;
+    font-weight: bold;
+    content: '\02143';
+    transform: rotate(40deg);
+}
+.radio:hover
+{
+    background-color: white;
+}
+.radio:checked
+{
+    background-color: white;
+}
+
+.checkbox {
+  margin-top: 10px;
+}
+
+input[type="checkbox"]
+{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    position: relative;
+    background-color: white;
+    color: black;
+    top: 5px;
+    height: 15px;
+    width: 15px;
+    border: 0;
+    border-radius: 1px;
+    cursor: pointer;
+    outline: none;
+}
+
+input[type="checkbox"]:checked::before
+{
+    position: absolute;
+    font-family: 'Courier New', Courier, monospace;
+    left: 4px;
+    font-weight: bold;
+    content: '\02143';
+    transform: rotate(40deg);
+}
+
+input[type="checkbox"]:hover
+{
+    background-color: white;
+}
+
+input[type="checkbox"]:checked
+{
+    background-color: white;
+}
+
+select {
+	display: block;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1em;
+  color: white;
+  padding: 5px;
+	width: 30%;
+	box-sizing: border-box;
+  border-color: white;
+  border-radius: 4px;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+	background-color: #0f0f13;
+}
+
+.sliders select {
+  width: 100%;
+}
+
+select::-ms-expand {
+	display: none;
+}
+select:hover {
+  background-color: white;
+  color: black;
+  cursor: pointer;
+}
+select:focus {
+	
+	outline: none;
+}
+select option {
+	font-weight: normal;
+}
+
+
+.container {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.game {
+  display: block;
+  position: relative;
+  width: 640px;
+  height: auto;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 40px;
+}
+
+.cellcount {
+  display: block;
+  position: absolute;
+  width: 100%;
+  text-align: center;
+}
+
+.controls {
+  display: block;
+  position: relative;
+  width: 640px;
+  height: auto;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 40px;
+}
+
+.sliders {
+  display: block;
+  position: absolute;
+  right: 0px;
+  top: 10px;
+  width: 100px;
+  text-align: right;
+}
+
+.outro {
+  text-align: left;
+  margin-top: 40px;
+  margin-bottom: 40px;
+  width: 320px;
+}
+
+@media only screen and (max-width: 700px){
+  p, h1 {
+    font-size: 0.8em;
+  }
+
+  .game {
+    width: 100%;
+  }
+
+  .controls{
+    padding-left: 40px;
+    padding-right: 40px;
+    width: auto;
+  }
+
+  .outro {
+    width: 200px;
+  }
+  .sliders{
+    right: 40px;
+  }
+
+  select {
+    width: 40%;
+  }
+}
