@@ -18,14 +18,15 @@
 
 <body>
   <div class="container">
-    <div class="controls">
+    <!-- <div class="controls">
       <h1>dance of the planets</h1>
-    </div>
+    </div> -->
     <div class='game' id='game'></div>
     <div class='controls'>
-      <div class="sliders">
-          
-      </div>
+        <p class="sliderP" id="bpmP">bpm</p>
+          <input type="range" min="120" max="800" value="294" class="slider" id="bpmSlider" oninput="bpmSliderChange()">
+        <p class="sliderP">transpose</p>
+          <input type="range" min="0" max="24" value="12" class="slider" id="transposeSlider" oninput="transposeSliderChange()">
 
       <div id="midiOptions"></div>
       

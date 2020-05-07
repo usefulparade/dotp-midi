@@ -5,11 +5,22 @@ var webMidiSupported, midiParent;
 
 var sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune;
 
+var bpmSlider, transposeSlider;
+
+var mercuryBPM;
+
 var planets = [];
 
 var speed;
 
 var dark;
+
+var oscillators = [];
+
+var envelopes = [];
+
+var notes = []; 
+var baseNotes = [];
 
 WebMidi.enable(function(err) {
   if (err) {
@@ -23,6 +34,9 @@ WebMidi.enable(function(err) {
 });
 
 function setup() {
+
+  getAudioContext().suspend();
+
     if (windowWidth > windowHeight){
       canvWidth = windowHeight;
       canvHeight = windowHeight;
@@ -41,16 +55,34 @@ function setup() {
     
   }
 
-  sun = new Planet(0, 70, 0, "sun");
-  mercury = new Planet(50, 10, 1, "mercury");
-  venus = new Planet(75, 15, 0.7414966, "venus");
-  earth = new Planet(100, 20, 0.6292517, "earth");
-  mars = new Planet(125, 15, 0.51020408, "mars");
-  jupiter = new Planet(200, 50, 0.2755102, "jupiter");
-  saturn = new Planet(250, 40, 0.20408163, "saturn");
-  uranus = new Planet(300, 30, 0.14285714, "uranus");
-  neptune = new Planet(350, 20, 0.11564626, "neptune");
-  planets.push(sun);
+  baseNotes = [
+    new p5.Vector(90, 83), // mercury F#6 B5
+    new p5.Vector(86, 79), // venus D6 G5
+    new p5.Vector(81, 74), // earth A5 D5
+    new p5.Vector(76, 69), // mars E5 A4
+    new p5.Vector(71, 64), // jupiter B4 E4
+    new p5.Vector(66, 59), // saturn F#4 B3
+    new p5.Vector(64, 57), // uranus E4 A3
+    new p5.Vector(57, 50), // neptune A3 D3
+    new p5.Vector(50, 57), // sun 1
+    new p5.Vector(38, 45), // sun 2
+  ];
+
+  for (i=0;i<baseNotes.length;i++){
+    notes[i] = baseNotes[i];
+  }
+
+  // CREATE PLANETS
+
+  sun = new Planet(0, 70, 0, "sun", 9);
+  mercury = new Planet(50, 10, 1, "mercury", 0);
+  venus = new Planet(75, 15, 0.7414966, "venus", 1);
+  earth = new Planet(100, 20, 0.6292517, "earth", 2);
+  mars = new Planet(125, 15, 0.51020408, "mars", 3);
+  jupiter = new Planet(200, 50, 0.2755102, "jupiter", 4);
+  saturn = new Planet(250, 40, 0.20408163, "saturn", 5);
+  uranus = new Planet(300, 30, 0.14285714, "uranus", 6);
+  neptune = new Planet(350, 20, 0.11564626, "neptune", 7);
   planets.push(mercury);
   planets.push(venus);
   planets.push(earth);
@@ -59,10 +91,46 @@ function setup() {
   planets.push(saturn);
   planets.push(uranus);
   planets.push(neptune);
+  planets.push(sun);
+
+  mercuryBPM = 2.94;
+
+  // CREATE SYNTHS
+
+  for (i=0;i<12;i++){
+    
+    envelopes[i] = new p5.Envelope();
+    if (i < 8){
+      envelopes[i].setADSR(0.1, 0.01, 0.2, 0.15 + i*0.1);
+      envelopes[i].setRange(0.5, 0);
+    } else {
+      envelopes[i].setADSR(1, 1, 0.1, 1);
+      envelopes[i].setRange(0.15, 0);
+    }
+
+    oscillators[i] = new p5.Oscillator('sine');
+    oscillators[i].start();
+    oscillators[i].amp(envelopes[i]);
+
+    // planet starting pitches
+    if (i < 8){
+      oscillators[i].freq(midiToFreq(notes[i].x));
+    }
+  }
+
+  // sun pitches
+  oscillators[8].freq(midiToFreq(notes[8].x));
+  oscillators[9].freq(midiToFreq(notes[8].y));
+  oscillators[10].freq(midiToFreq(notes[9].x));
+  oscillators[11].freq(midiToFreq(notes[9].y));
 
   speed = 0.01;
 
   dark = color(15, 15, 19);
+
+  bpmSlider = document.getElementById('bpmSlider');
+  transposeSlider = document.getElementById('transposeSlider');
+
 }
 
 function draw() {
@@ -77,11 +145,15 @@ function draw() {
   translate(width/2, height/2);
   for (i=0;i<planets.length;i++){
     planets[i].show();
+    planets[i].play();
   }
   pop();
 }
 
-var Planet = function(offset, diameter, ratio, name){
+var Planet = function(offset, diameter, ratio, name, index){
+  this.delta = 0;
+  this.index = index;
+  this.trigger = false;
   this.offset = new p5.Vector(offset, 0);
   this.diameter = diameter;
   this.radius = this.diameter*0.5;
@@ -95,13 +167,22 @@ var Planet = function(offset, diameter, ratio, name){
   this.name = name;
   this.pos = new p5.Vector(0, 0);
   this.mouseTrans = new p5.Vector(0,0);
-  this.on = true;
+  this.on = false;
   this.over = false;
+  this.activeNote = 0;
+  this.pan = 0;
 
   this.show = function(){
 
     if (this.on){
       this.rotation += (this.ratio*speed);
+      // console.log(this.rotation);
+      if (this.rotation%TWO_PI < PI){
+        this.pan = map(this.rotation%TWO_PI, 0, PI, 1, -1);
+      } else {
+        this.pan = map(this.rotation%TWO_PI, PI, TWO_PI, -1, 1);
+      }
+      oscillators[this.index].pan(this.pan);
     }
 
     push();
@@ -132,6 +213,24 @@ var Planet = function(offset, diameter, ratio, name){
       ellipse(0, 0, this.diameter);
     pop();
   };
+
+  this.play = function(){
+    if (this.on && this.name != "sun"){
+      this.delta = ((this.delta + (deltaTime/100)) % ((mercuryBPM)/this.ratio));
+      // console.log(floor(this.delta));
+
+      if (floor(this.delta) == 0 && this.trigger == false){
+
+        triggerNote(this.index);
+        this.trigger = true;
+      }
+  
+      if (this.delta > 1 && this.trigger == true){
+        this.trigger = false;
+      }
+    }
+
+  };
 };
 
 function radialStrings(){
@@ -148,42 +247,45 @@ function mousePressed() {
   for (i=0;i<planets.length;i++){
     if (planets[i].over){
       planets[i].on = !planets[i].on;
+      planets[i].delta = 0;
+
+      if (planets[i].name == "sun"){
+        
+        if (planets[i].on){
+          for (i=8;i<12;i++){
+            envelopes[i].triggerAttack();
+          }
+        } else {
+          for (i=8;i<12;i++){
+            envelopes[i].triggerRelease();
+          }
+        }
+      }
     }
   }
 }
 
-
-function playVoice(x, y){
-  let note = notes[x];
-
-  envelopes[x][y].triggerAttack();
-  // synths[x][y].amp(0.3, 0.0001);
-
-  if (webMidiSupported && scaleVal != 0){
-    if (activeChannel != "r"){
-      WebMidi.outputs[outputDevice].playNote(notes[x+(rows-y-1)] + noteOffset, activeChannel);
-    } else {
-      WebMidi.outputs[outputDevice].playNote(notes[x+(rows-y-1)] + noteOffset, rows-y);
-    }
+function triggerNote(c){
+  let note;
+  if (planets[c].activeNote == 0){
+    note = notes[c].x;
+  } else {
+    note = notes[c].y;
   }
+
+  oscillators[c].freq(midiToFreq(note));
+
+  envelopes[c].play();
+
+  planets[c].activeNote = (planets[c].activeNote + 1) % 2;
 }
 
-function releaseVoice(x, y){
-  let note = notes[x];
 
-  envelopes[x][y].triggerRelease();
-  // synths[x][y].amp(0, 0.0001);
-  if (webMidiSupported && scaleVal != 0){
-    if (activeChannel != "r"){
-      WebMidi.outputs[outputDevice].stopNote(notes[x+(rows-y-1)], activeChannel);
-    } else {
-      WebMidi.outputs[outputDevice].stopNote(notes[x+(rows-y-1)], rows-y);
-    }
-  }
-}
+function bpmSliderChange(){
+  // speed = floor(101-bpmSlider.value);
+  mercuryBPM = (bpmSlider.max - (bpmSlider.value-bpmSlider.min)) * 0.01;
+  // console.log(mercuryBPM);
 
-function speedSliderChange(){
-  speed = floor(101-speedSlider.value);
 }
 
 function volumeSliderChange(){
@@ -202,19 +304,9 @@ function filterSliderChange(){
 }
 
 function transposeSliderChange(){
-  if (webMidiSupported && generation > 0){
-    WebMidi.outputs[outputDevice].sendStop();
-  }
-  if (scaleVal == 0){
-    if (transposeSlider.value <= 12){
-      noteOffset = map(transposeSlider.value, 0, 12, 0.5, 1);
-    } else if (transposeSlider.value > 12){
-      noteOffset = map(transposeSlider.value, 12, 24, 1, 2);
-    } else {
-      noteOffset = 1;
-    }
-  } else {
-    noteOffset = map(transposeSlider.value, 0, 24, -12, 12);
+  var transposeVector = new p5.Vector(transposeSlider.value-12, transposeSlider.value-12);
+  for (i=0;i<notes.length;i++){
+    notes[i] = new p5.Vector(baseNotes[i].x + transposeVector.x, baseNotes[i].y + transposeVector.y);
   }
   remapNotes();
 
@@ -222,32 +314,37 @@ function transposeSliderChange(){
 
 function remapNotes(){
 
+    // REMAP THE SUN
+    oscillators[8].freq(midiToFreq(notes[8].x));
+    oscillators[9].freq(midiToFreq(notes[8].y));
+    oscillators[10].freq(midiToFreq(notes[9].x));
+    oscillators[11].freq(midiToFreq(notes[9].y));
 
-  if (scaleVal != 0){
+  // if (scaleVal != 0){
 
-    for (i=0;i<notes.length;i++){
-      while (notes[i] > 127){
-        notes[i] -= 12;
-      }
+  //   for (i=0;i<notes.length;i++){
+  //     while (notes[i] > 127){
+  //       notes[i] -= 12;
+  //     }
       
-      while (notes[i] < 0){
-        notes[i] += 12;
-      }
-    }
+  //     while (notes[i] < 0){
+  //       notes[i] += 12;
+  //     }
+  //   }
 
-    for (i=0;i<columns;i++){
-      for (j=0;j<rows;j++){
-        synths[i][j].freq(midiToFreq(notes[i+(rows-j-1)] + noteOffset) + (random(-1, 1)*pitchSpread));
-      }
-    }
-  } else {
-    for (i=0;i<columns;i++){
-      for (j=0;j<rows;j++){
-        // synths[i][j].freq(notes[i+(rows-j-1)] + (random(-1, 1)*pitchSpread));
-        synths[i][j].freq(notes[i+(rows-j-1)]*noteOffset);
-      }
-    }
-  }
+  //   for (i=0;i<columns;i++){
+  //     for (j=0;j<rows;j++){
+  //       synths[i][j].freq(midiToFreq(notes[i+(rows-j-1)] + noteOffset) + (random(-1, 1)*pitchSpread));
+  //     }
+  //   }
+  // } else {
+  //   for (i=0;i<columns;i++){
+  //     for (j=0;j<rows;j++){
+  //       // synths[i][j].freq(notes[i+(rows-j-1)] + (random(-1, 1)*pitchSpread));
+  //       synths[i][j].freq(notes[i+(rows-j-1)]*noteOffset);
+  //     }
+  //   }
+  // }
 }
 
 function windowResized(){
