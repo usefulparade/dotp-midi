@@ -224,12 +224,11 @@ select option {
 
 .controls {
   display: block;
-  position: relative;
+  position: absolute;
   width: 640px;
   height: auto;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 40px;
+  left: 40px;
+  top: 40px;
 }
 
 .sliders {
@@ -258,9 +257,12 @@ select option {
   }
 
   .controls{
-    padding-left: 40px;
-    padding-right: 40px;
-    width: auto;
+    display: block;
+    position: absolute;
+    width: 320px;
+    height: auto;
+    left: 40px;
+    top: 40px;
   }
 
   .outro {
