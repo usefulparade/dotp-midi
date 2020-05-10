@@ -14,6 +14,8 @@ var bpmSlider, transposeSlider;
 
 var volume, volumeP, volumeSlider;
 
+var attack, decay, sustain, release, attackSlider;
+
 var mercuryBPM;
 
 var planets = [];
@@ -114,6 +116,11 @@ function setup() {
   planets.push(sun);
 
   mercuryBPM = 2.94;
+  
+  attack = 0.1;
+  decay = 0.01;
+  sustain = 0.2;
+  release = 0.15;
 
   // CREATE SYNTHS
 
@@ -121,7 +128,7 @@ function setup() {
     
     envelopes[i] = new p5.Envelope();
     if (i < 8){
-      envelopes[i].setADSR(0.1, 0.01, 0.2, 0.15 + i*0.1);
+      envelopes[i].setADSR(attack, decay, sustain, release + i*0.1);
       envelopes[i].setRange(0.5, 0);
     } else {
       envelopes[i].setADSR(1, 1, 0.1, 1);
@@ -150,6 +157,10 @@ function setup() {
 
   bpmSlider = document.getElementById('bpmSlider');
   transposeSlider = document.getElementById('transposeSlider');
+  attackSlider = document.getElementById('attackSlider');
+  
+  
+  
 
   volume = 0.5;
   volumeP = document.getElementById("volumeP");
@@ -395,6 +406,14 @@ function bpmSliderChange(){
 function volumeSliderChange(){
   volume = map(volumeSlider.value, 0, 100, 0, 1);
   masterVolume(volume);
+}
+
+function attackSliderChange(){
+  attack = map(attackSlider.value, 0, 100, 0, 0.3);
+  for(i=0;i<envelopes.length;i++){
+    envelopes[i].setADSR(attack, decay, sustain, release);
+    console.log("attack time changed to: " + attack);
+  }
 }
 
 function filterSliderChange(){
