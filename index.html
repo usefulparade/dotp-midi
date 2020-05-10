@@ -27,17 +27,19 @@
           <input type="range" min="0" max="100" value="50" class="slider" id="volumeSlider" oninput="volumeSliderChange()">
 
         <p class="sliderP" id="bpmP">bpm</p>
-          <input type="range" min="120" max="800" value="294" class="slider" id="bpmSlider" oninput="bpmSliderChange()">
+          <input type="range" min="120" max="800" value="626" class="slider" id="bpmSlider" oninput="bpmSliderChange()">
         
         <p class="sliderP">transpose</p>
           <input type="range" min="0" max="24" value="12" class="slider" id="transposeSlider" oninput="transposeSliderChange()">
           
-        <p class="sliderP">attack</p>
-          <input type="range" min="0" max="100" value="30" class="slider" id="attackSlider" oninput="attackSliderChange()">
+        
         
         
         <p>interval</p>
           <select onchange="intervalSelector(this)" id="intervalSelect">
+            <option value="6" >octaves</option>
+            <option value="5" >sevenths</option>
+            <option value="4" >sixths</option>
             <option value="0" selected>fifths</option>
             <option value="1">fourths</option>
             <option value="2">thirds</option>
@@ -51,6 +53,13 @@
             <option value="sawtooth">saw</option>
             <option value="square">square</option>
           </select>
+          
+        <p class="sliderP">attack</p>
+          <input type="range" min="0" max="100" value="6" class="slider" id="attackSlider" oninput="attackSliderChange()">
+        
+        <p class="sliderP">release</p>
+          <input type="range" min="0" max="100" value="20" class="slider" id="releaseSlider" oninput="releaseSliderChange()">
+        
       <div id="midiOptions"></div>
       
 

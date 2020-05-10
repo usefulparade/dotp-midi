@@ -14,7 +14,7 @@ var bpmSlider, transposeSlider;
 
 var volume, volumeP, volumeSlider;
 
-var attack, decay, sustain, release, attackSlider;
+var attack, decay, sustain, release, attackSlider, releaseSlider;
 
 var mercuryBPM;
 
@@ -117,7 +117,7 @@ function setup() {
 
   mercuryBPM = 2.94;
   
-  attack = 0.1;
+  attack = 0.006;
   decay = 0.01;
   sustain = 0.2;
   release = 0.15;
@@ -158,9 +158,7 @@ function setup() {
   bpmSlider = document.getElementById('bpmSlider');
   transposeSlider = document.getElementById('transposeSlider');
   attackSlider = document.getElementById('attackSlider');
-  
-  
-  
+  releaseSlider = document.getElementById('releaseSlider');
 
   volume = 0.5;
   volumeP = document.getElementById("volumeP");
@@ -225,9 +223,9 @@ function setup() {
     channelSelector.changed(midiChannelChange);
     activeChannel = 1;
 
-    clockCheckbox = createCheckbox(' send clock', false);
-    clockCheckbox.parent(midiParent);
-    clockCheckbox.class("checkbox");
+    // clockCheckbox = createCheckbox(' send clock', false);
+    // clockCheckbox.parent(midiParent);
+    // clockCheckbox.class("checkbox");
   }
 
 }
@@ -333,18 +331,6 @@ var Planet = function(offset, diameter, ratio, name, index){
 
   };
 
-  this.midiOutputChange = function(){
-    var newDevice = this.deviceSelector.value().charAt(0);
-    console.log("midi output device changed to: " + newDevice);
-    this.midiOutput = newDevice;
-  };
-
-  this.midiChannelChange = function(){
-    var newChannel = this.channelSelector.value().charAt(0);
-    console.log("output channel changed to: " + this.channelSelector.value());
-    this.midiChannel = newChannel;
-  };
-
 };
 
 function radialStrings(){
@@ -364,14 +350,30 @@ function mousePressed() {
       planets[i].delta = 0;
 
       if (planets[i].name == "sun"){
+        var output = planets[i].midiOutput;
+        var channel = planets[i].midiChannel;
         
         if (planets[i].on){
           for (i=8;i<12;i++){
             envelopes[i].triggerAttack();
           }
+          // SEND MIDI DRONE START
+          if (webMidiSupported){
+            for (j=8;j<10;j++){
+              WebMidi.outputs[output].playNote(notes[j].x, channel);
+              WebMidi.outputs[output].playNote(notes[j].y, channel);
+            }
+          }
         } else {
           for (i=8;i<12;i++){
             envelopes[i].triggerRelease();
+          }
+          // SEND MIDI DRONE STOP
+          if (webMidiSupported){
+            for (j=8;j<10;j++){
+              WebMidi.outputs[output].stopNote(notes[j].x, channel);
+              WebMidi.outputs[output].stopNote(notes[j].y, channel);
+            }
           }
         }
       }
@@ -400,6 +402,7 @@ function bpmSliderChange(){
   // speed = floor(101-bpmSlider.value);
   mercuryBPM = (bpmSlider.max - (bpmSlider.value-bpmSlider.min)) * 0.01;
   // console.log(mercuryBPM);
+  // console.log("bpm changed to: " + mercuryBPM*100);
 
 }
 
@@ -411,8 +414,16 @@ function volumeSliderChange(){
 function attackSliderChange(){
   attack = map(attackSlider.value, 0, 100, 0, 0.3);
   for(i=0;i<envelopes.length;i++){
-    envelopes[i].setADSR(attack, decay, sustain, release);
+    envelopes[i].setADSR(attack, decay, sustain, release+i*0.1);
     console.log("attack time changed to: " + attack);
+  }
+}
+
+function releaseSliderChange(){
+  release = map(releaseSlider.value, 0, 100, 0, 1);
+  for(i=0;i<envelopes.length;i++){
+    envelopes[i].setADSR(attack, decay, sustain, release+i*0.1);
+    console.log("release time changed to: " + release);
   }
 }
 
@@ -422,6 +433,8 @@ function filterSliderChange(){
 }
 
 function transposeSliderChange(){
+  stopSunMidi();
+  
   var transposeVector = new p5.Vector(transposeSlider.value-12, transposeSlider.value-12);
 
   for (i=0;i<notes.length;i++){
@@ -435,15 +448,42 @@ function transposeSliderChange(){
   }
 
   remapSunPitches();
-
+  startSunMidi();
+  
 }
 
+function startSunMidi(){
+  // SEND MIDI DRONE START
+  var theSun = planets[planets.length-1];
+    if (webMidiSupported && theSun.on){
+      for (j=8;j<10;j++){
+        WebMidi.outputs[theSun.midiOutput].playNote(notes[j].x, theSun.midiChannel);
+        WebMidi.outputs[theSun.midiOutput].playNote(notes[j].y, theSun.midiChannel);
+      }
+    }
+}
+
+function stopSunMidi(){
+  // SEND MIDI DRONE STOP
+  var theSun = planets[planets.length-1];
+  // theSun.on = false;
+    if (webMidiSupported && theSun.on){
+      for (j=8;j<10;j++){
+        WebMidi.outputs[theSun.midiOutput].stopNote(notes[j].x, theSun.midiChannel);
+        WebMidi.outputs[theSun.midiOutput].stopNote(notes[j].y, theSun.midiChannel);
+      }
+    }
+  
+  }
+
 function remapSunPitches(){
+
     // REMAP THE SUN
     oscillators[8].freq(midiToFreq(notes[8].x));
     oscillators[9].freq(midiToFreq(notes[8].y));
     oscillators[10].freq(midiToFreq(notes[9].x));
     oscillators[11].freq(midiToFreq(notes[9].y));
+    
 }
 
 function windowResized(){
@@ -465,6 +505,9 @@ function touchEnded(){
 }
 
 function intervalSelector(){
+  
+  stopSunMidi();
+  
   var intervalVal = intervalSelect.value;
   var base = notes[0];
   var newNotes = [];
@@ -499,9 +542,31 @@ function intervalSelector(){
       ind = midiScale.findIndex(n => n === notes[i].y);
       notes[i].x = midiScale[ind+1];
     }
+  }  else if (intervalVal == 4){
+    // SECONDS
+    console.log('new interval: sixths!');
+    for (i=0;i<notes.length;i++){
+      ind = midiScale.findIndex(n => n === notes[i].y);
+      notes[i].x = midiScale[ind+5];
+    }
+  }  else if (intervalVal == 5){
+    // SECONDS
+    console.log('new interval: sevenths!');
+    for (i=0;i<notes.length;i++){
+      ind = midiScale.findIndex(n => n === notes[i].y);
+      notes[i].x = midiScale[ind+6];
+    }
+  }  else if (intervalVal == 6){
+    // SECONDS
+    console.log('new interval: octaves!');
+    for (i=0;i<notes.length;i++){
+      ind = midiScale.findIndex(n => n === notes[i].y);
+      notes[i].x = midiScale[ind+7];
+    }
   }
 
   remapSunPitches();
+  startSunMidi();
 }
 
 function oscSelector(newOsc){
@@ -534,6 +599,8 @@ function midiScopeChange(){
 }
 
 function midiOutputChange(){
+  WebMidi.outputs[outputDevice].sendStop();
+  stopSunMidi();
   var newDevice = deviceSelector.value().charAt(0);
   for (i=0;i<planets.length;i++){
     if (midiScope == "planets"){
@@ -541,9 +608,6 @@ function midiOutputChange(){
         console.log("midi output for all planets changed to: " + newDevice);
       }
       planets[i].midiOutput = newDevice;
-    } else if (midiScope == "sun"){
-      
-      
     } else {
       if (midiScope == planets[i].name){
         console.log("midi output for " + midiScope + " changed to: " + newDevice);
@@ -551,10 +615,12 @@ function midiOutputChange(){
       }
     }
   }
+  startSunMidi();
 }
 
 function midiChannelChange(){
   WebMidi.outputs[outputDevice].sendStop();
+  stopSunMidi();
   var newChannel = channelSelector.value().charAt(0);
   for (i=0;i<planets.length;i++){
     if (midiScope == "planets"){
@@ -563,9 +629,6 @@ function midiChannelChange(){
       }
       planets[i].midiChannel = newChannel;
       WebMidi.outputs[planets[i].midiOutput].sendStop();
-    }  else if (midiScope == "sun"){
-      
-      
     } else {
       if (midiScope == planets[i].name){
         console.log("channel for " + midiScope + " changed to: " + channelSelector.value());
@@ -574,27 +637,5 @@ function midiChannelChange(){
       }
     }
   }
-}
-
-function sendMidiClock(){
-  // send midi clock
-  if (webMidiSupported){
-    if (clockCheckbox.checked()){
-      if (speed >= 24){
-        if (floor(clockCount%(speed/24)) == 0){
-          if (!paused && webMidiSupported){
-            WebMidi.outputs[outputDevice].sendClock();
-          }
-        }
-      } else {
-        if (floor(clockCount%(speed/(speed*0.5)) == 0)){
-          if (!paused && webMidiSupported){
-            WebMidi.outputs[outputDevice].sendClock();
-          }
-        }
-      }
-    }
-  }
-  clockCount++;
-
+  startSunMidi();
 }
