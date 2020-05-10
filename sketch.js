@@ -392,8 +392,9 @@ function triggerNote(c){
 
   envelopes[c].play();
 
-  WebMidi.outputs[planets[c].midiOutput].playNote(note, planets[c].midiChannel, {duration: 10});
-
+  if (webMidiSupported){
+    WebMidi.outputs[planets[c].midiOutput].playNote(note, planets[c].midiChannel, {duration: 10});
+  }
   planets[c].activeNote = (planets[c].activeNote + 1) % 2;
 }
 
