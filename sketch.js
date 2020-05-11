@@ -10,7 +10,7 @@ var clockCheckbox;
 
 var sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune;
 
-var bpmSlider, transposeSlider;
+var bpmSlider, transposeSlider, transposeP;
 
 var volume, volumeP, volumeSlider;
 
@@ -36,6 +36,8 @@ var dMajScale = [];
  
 var intervalSelect, intervalVal;
 
+var transposeKeys = [];
+
 WebMidi.enable(function(err) {
   if (err) {
     console.log("An error occurred", err);
@@ -51,13 +53,8 @@ function setup() {
 
   getAudioContext().suspend();
 
-  if (windowWidth > windowHeight){
-    canvWidth = windowHeight;
-    canvHeight = windowHeight;
-  } else {
-    canvWidth = windowWidth;
-    canvHeight = windowWidth;
-  }
+  canvWidth = 750;
+  canvHeight = 750;
 
   c = createCanvas(canvWidth, canvHeight);
   cParent = document.getElementById('game');
@@ -154,9 +151,12 @@ function setup() {
   speed = 0.01;
 
   dark = color(15, 15, 19);
+  
+  transposeKeys = ['D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C', 'C#', 'D'];
 
   bpmSlider = document.getElementById('bpmSlider');
   transposeSlider = document.getElementById('transposeSlider');
+  transposeP = document.getElementById('transposeP');
   attackSlider = document.getElementById('attackSlider');
   releaseSlider = document.getElementById('releaseSlider');
 
@@ -436,6 +436,8 @@ function filterSliderChange(){
 function transposeSliderChange(){
   stopSunMidi();
   
+  
+  
   var transposeVector = new p5.Vector(transposeSlider.value-12, transposeSlider.value-12);
 
   for (i=0;i<notes.length;i++){
@@ -451,6 +453,14 @@ function transposeSliderChange(){
   remapSunPitches();
   startSunMidi();
   
+}
+
+function transposeKeyShow(){
+  transposeP.innerHTML = ("transpose: " + transposeKeys[transposeSlider.value]);
+}
+
+function transposeKeyHide(){
+  transposeP.innerHTML = ("transpose");
 }
 
 function startSunMidi(){
@@ -488,11 +498,7 @@ function remapSunPitches(){
 }
 
 function windowResized(){
-  if (windowWidth > windowHeight){
-    resizeCanvas(windowHeight, windowHeight);
-  } else {
-    resizeCanvas(windowWidth, windowWidth);
-  }
+  // resizeCanvas(windowWidth, windowHeight);
 }
 
 function touchStarted(){
