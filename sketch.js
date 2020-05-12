@@ -240,7 +240,6 @@ function draw() {
   
   noFill();
   stroke(255);
-  // ellipse(width/2, height/2, 100);
 
   push();
   translate(width/2, height/2);
@@ -307,7 +306,7 @@ var Planet = function(offset, diameter, ratio, name, index){
       line(-this.rad, 0, this.rad, 0);
       if (this.mouseTrans.x > -this.hitbox && this.mouseTrans.x < this.hitbox && this.mouseTrans.y > -this.hitbox && this.mouseTrans.y < this.hitbox){
         this.over = true;
-        if (touchIsDown && this.touchSwitched){
+        if (touchIsDown && !this.touchSwitched){
           this.on = !this.on;
           this.touchSwitched = true;
         }
@@ -522,6 +521,7 @@ function touchStarted(){
   touchIsDown = true;
   userStartAudio();
   getAudioContext().resume();
+
 
   for (i=0;i<planets.length;i++){
 
