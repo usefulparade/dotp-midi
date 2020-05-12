@@ -38,6 +38,8 @@ var intervalSelect, intervalVal;
 
 var transposeKeys = [];
 
+var touchIsDown;
+
 WebMidi.enable(function(err) {
   if (err) {
     console.log("An error occurred", err);
@@ -52,6 +54,8 @@ WebMidi.enable(function(err) {
 function setup() {
 
   getAudioContext().suspend();
+
+  touchIsDown = false;
 
   canvWidth = 750;
   canvHeight = 750;
@@ -270,6 +274,7 @@ var Planet = function(offset, diameter, ratio, name, index){
   this.pan = 0;
   this.midiOutput = 0;
   this.midiChannel = 1;
+  this.touchSwitched = false;
 
   this.show = function(){
 
@@ -287,13 +292,25 @@ var Planet = function(offset, diameter, ratio, name, index){
     push();
       rotate(this.rotation);
       translate(this.offset);
-      this.mouseTrans = new p5.Vector(mouseX-width/2, mouseY-height/2);
+
+      // if touching, use that. if not, use the mouse!
+      if (touchIsDown){
+        this.mouseTrans = new p5.Vector(touches[0].x - width/2, touches[0].y - width/2);
+      } else {
+        this.mouseTrans = new p5.Vector(mouseX-width/2, mouseY-height/2);
+      }
+      // adjust position of our mouse with some reversing of their translation/rotation math
+
       this.mouseTrans.rotate(TWO_PI-this.rotation);
       this.mouseTrans.sub(this.offset);
       
       line(-this.rad, 0, this.rad, 0);
       if (this.mouseTrans.x > -this.hitbox && this.mouseTrans.x < this.hitbox && this.mouseTrans.y > -this.hitbox && this.mouseTrans.y < this.hitbox){
         this.over = true;
+        if (touchIsDown && this.touchSwitched){
+          this.on = !this.on;
+          this.touchSwitched = true;
+        }
         push();
           fill(dark);
           stroke(255);
@@ -505,10 +522,50 @@ function touchStarted(){
   touchIsDown = true;
   userStartAudio();
   getAudioContext().resume();
+
+  for (i=0;i<planets.length;i++){
+
+    if (planets[i].over){
+
+      if (planets[i].name == "sun"){
+        var output = planets[i].midiOutput;
+        var channel = planets[i].midiChannel;
+        
+        if (planets[i].on){
+          for (i=8;i<12;i++){
+            envelopes[i].triggerAttack();
+          }
+          // SEND MIDI DRONE START
+          if (webMidiSupported){
+            for (j=8;j<10;j++){
+              WebMidi.outputs[output].playNote(notes[j].x, channel);
+              WebMidi.outputs[output].playNote(notes[j].y, channel);
+            }
+          }
+        } else {
+          for (i=8;i<12;i++){
+            envelopes[i].triggerRelease();
+          }
+          // SEND MIDI DRONE STOP
+          if (webMidiSupported){
+            for (j=8;j<10;j++){
+              WebMidi.outputs[output].stopNote(notes[j].x, channel);
+              WebMidi.outputs[output].stopNote(notes[j].y, channel);
+            }
+          }
+        }
+      }
+    }
+  }
+
 }
 
 function touchEnded(){
   touchIsDown = false;
+
+  for (i=0;i<planets.length;i++){
+    planets[i].touchSwitched = false;
+  }
 }
 
 function intervalSelector(){
@@ -603,6 +660,28 @@ function midiScopeChange(){
     }
   }
   
+}
+
+function randomizer(){
+  for (i=0;i<planets.length;i++){
+    if (random() > 0.5){
+      planets[i].on = true;
+      if (planets[i].name == 'sun'){
+        for (i=8;i<12;i++){
+          envelopes[i].triggerAttack();
+        }
+        startSunMidi();
+      }
+    } else {
+      planets[i].on = false;
+      if (planets[i].name == 'sun'){
+        for (i=8;i<12;i++){
+          envelopes[i].triggerRelease();
+        }
+        stopSunMidi();
+      }
+    }
+  }
 }
 
 function midiOutputChange(){
