@@ -664,22 +664,37 @@ function midiScopeChange(){
 
 function randomizer(){
   for (i=0;i<planets.length;i++){
-    if (random() > 0.5){
-      planets[i].on = true;
+    if (random() > 0.5){ // turn it on!
+      
       if (planets[i].name == 'sun'){
-        for (i=8;i<12;i++){
-          envelopes[i].triggerAttack();
+        if (!planets[i].on){
+          planets[i].on = true;
+          for (i=8;i<12;i++){
+            envelopes[i].triggerAttack();
+          }
+          startSunMidi();
         }
-        startSunMidi();
+      } else {
+        planets[i].on = true;
       }
-    } else {
-      planets[i].on = false;
+
+     
+    } else { // turn it off!
+      
       if (planets[i].name == 'sun'){
-        for (i=8;i<12;i++){
-          envelopes[i].triggerRelease();
+        if (planets[i].on){
+          stopSunMidi();
+          planets[i].on = false;
+          for (i=8;i<12;i++){
+            envelopes[i].triggerRelease();
+          }
+          
         }
-        stopSunMidi();
+      } else {
+        planets[i].on = false;
       }
+
+      
     }
   }
 }
