@@ -5,6 +5,8 @@ var webMidiSupported, midiParent;
 var midiScope, scopeLabel, scopeSelector;
 var devices = [];
 var deviceLabel, deviceSelector, outputDevice, midiParent;
+var inputDevices = [];
+var inputDeviceLabel, inputDeviceSelector, inputDevice;
 var channelLabel, channelSelector, activeChannel;
 var clockCheckbox;
 
@@ -156,7 +158,7 @@ function setup() {
 
   dark = color(15, 15, 19);
   
-  transposeKeys = ['D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C', 'C#', 'D'];
+  transposeKeys = ['D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C', 'C#'];
 
   bpmSlider = document.getElementById('bpmSlider');
   transposeSlider = document.getElementById('transposeSlider');
@@ -195,7 +197,7 @@ function setup() {
 
     // OUTPUT
 
-    deviceLabel = createP("midi output");
+    deviceLabel = createP("output");
     deviceLabel.parent(midiParent);
     
     deviceSelector = createSelect();
@@ -230,7 +232,30 @@ function setup() {
     // clockCheckbox = createCheckbox(' send clock', false);
     // clockCheckbox.parent(midiParent);
     // clockCheckbox.class("checkbox");
+  
+    // INPUT
+
+    inputDeviceLabel = createP("input");
+    inputDeviceLabel.parent(midiParent);
+    
+    inputDeviceSelector = createSelect();
+    inputDeviceSelector.parent(midiParent);
+
+    inputDeviceSelector.option('~ choose input ~');
+    inputDeviceSelector.disable('~ choose input ~');
+    inputDeviceSelector.changed(midiInputChange);
+
+    for (i=0;i<WebMidi.inputs.length;i++){
+      var inputName = WebMidi.inputs[i]._midiInput.name;
+      inputDevices[i] = "" + i + " " + inputName;
+      inputDeviceSelector.option(devices[i]);
+    }
+    inputDevice = 0;
   }
+
+    
+
+  
 
 }
 
@@ -453,8 +478,8 @@ function transposeSliderChange(){
   stopSunMidi();
   
   
-  
-  var transposeVector = new p5.Vector(transposeSlider.value-12, transposeSlider.value-12);
+  var middle = (transposeSlider.max - transposeSlider.min) * 0.5;
+  var transposeVector = new p5.Vector(transposeSlider.value-middle, transposeSlider.value-middle);
 
   for (i=0;i<notes.length;i++){
     var newX = midiScale.findIndex(n => n === notes[i].x);
@@ -472,11 +497,20 @@ function transposeSliderChange(){
 }
 
 function transposeKeyShow(){
-  transposeP.innerHTML = ("transpose: " + transposeKeys[transposeSlider.value]);
+  transposeP.innerHTML = ("transpose: " + transposeKeys[transposeSlider.value%transposeKeys.length]);
 }
 
 function transposeKeyHide(){
   transposeP.innerHTML = ("transpose");
+}
+
+function midiInputTranspose(e){
+  console.log('played: ' + e.note.name + e.note.octave + ", " + e.note.number);
+  var base = 62;
+  var num = e.note.number;
+  var middle = (transposeSlider.max - transposeSlider.min)*0.5
+  transposeSlider.value = middle + ((num - base));
+  transposeSliderChange();
 }
 
 function startSunMidi(){
@@ -739,4 +773,16 @@ function midiChannelChange(){
     }
   }
   startSunMidi();
+}
+
+function midiInputChange(){
+  
+  for (i=0;i<WebMidi.inputs.length;i++){
+    WebMidi.inputs[i].removeListener();
+  }
+
+  var newDevice = inputDeviceSelector.value().charAt(0);
+  var input = WebMidi.inputs[newDevice];
+  console.log(input);
+  input.addListener('noteon', 'all', midiInputTranspose);
 }
