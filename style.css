@@ -168,6 +168,11 @@ select {
 	background-color: #0f0f13;
 }
 
+select#halfsize {
+  display: inline-block;
+  width: 15%;
+}
+
 .sliders select {
   width: 100%;
 }
@@ -274,5 +279,9 @@ select option {
 
   select {
     width: 40%;
+  }
+  
+  select#halfsize{
+    width: 20%;
   }
 }

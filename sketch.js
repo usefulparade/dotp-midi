@@ -10,8 +10,9 @@ var inputDevices = [];
 var inputDeviceLabel, inputDeviceSelector, inputDevice;
 var inputChannelLabel, inputChannelSelector, inputActiveChannel;
 var inputCCLabel, inputCCSelect, inputCCVal;
-var inputCCFunctionLabel, inputCCFunctionSelector, inputCCFunction, inputCCListening;
+var inputCCFunctionLabel, inputCCFunctionSelect, inputCCFunction, inputCCListening;
 var inputCCFunctionMap = [];
+var midiOutLabel, midiInLabel, outputDiv, inputDiv, listeningP;
 
 var sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune;
 
@@ -182,32 +183,41 @@ function setup() {
     var divider = createP("~ ~ ~");
     divider.parent(midiParent);
 
+    // MIDI OUT
+
+    midiOutLabel = createP("midi out");
+    midiOutLabel.parent(midiParent);
+
     // SCOPE
 
-    scopeLabel = createP("midi scope");
-    scopeLabel.parent(midiParent);
+    // scopeLabel = createP("midi scope");
+    // scopeLabel.parent(midiParent);
 
     scopeSelector = createSelect();
     scopeSelector.parent(midiParent);
-    scopeSelector.option("planets");
+    scopeSelector.option("~ scope ~");
+    scopeSelector.disable("~ scope ~");
+
+    scopeSelector.option("all");
 
     for(i=0;i<planets.length;i++){
       scopeSelector.option("" + planets[i].name);
     }
-    midiScope = 'planets';
+    midiScope = 'all';
     scopeSelector.changed(midiScopeChange);
 
 
-    // OUTPUT
+    // OUTPUT DEVICE
 
-    deviceLabel = createP("output");
-    deviceLabel.parent(midiParent);
+    // deviceLabel = createP("output device");
+    // deviceLabel.parent(midiParent);
     
     deviceSelector = createSelect();
     deviceSelector.parent(midiParent);
+    deviceSelector.id('halfsize');
 
-    deviceSelector.option('~ choose output ~');
-    deviceSelector.disable('~ choose output ~');
+    deviceSelector.option('~device~');
+    deviceSelector.disable('~device~');
     deviceSelector.changed(midiOutputChange);
 
     for (i=0;i<WebMidi.outputs.length;i++){
@@ -219,11 +229,15 @@ function setup() {
 
     // OUT CHANNEL
 
-    channelLabel = createP("channel");
-    channelLabel.parent(midiParent);
+    // channelLabel = createP("channel");
+    // channelLabel.parent(midiParent);
 
     channelSelector = createSelect();
+    channelSelector.id('halfsize');
     channelSelector.parent(midiParent);
+
+    channelSelector.option('~channel~');
+    channelSelector.disable('~channel~');
     
     for (j=0;j<8;j++){
       channelSelector.option(j+1);
@@ -235,16 +249,22 @@ function setup() {
     // clockCheckbox.parent(midiParent);
     // clockCheckbox.class("checkbox");
   
-    // INPUT
+    // MIDI INPUT
 
-    inputDeviceLabel = createP("input");
-    inputDeviceLabel.parent(midiParent);
+    midiInputLabel = createP("midi in");
+    midiInputLabel.parent(midiParent);
+
+    //INPUT DEVICE
+
+    // inputDeviceLabel = createP("input device");
+    // inputDeviceLabel.parent(midiParent);
     
     inputDeviceSelector = createSelect();
     inputDeviceSelector.parent(midiParent);
+    inputDeviceSelector.id('halfsize');
 
-    inputDeviceSelector.option('~ choose input ~');
-    inputDeviceSelector.disable('~ choose input ~');
+    inputDeviceSelector.option('~device~');
+    inputDeviceSelector.disable('~device~');
     inputDeviceSelector.changed(midiInputChange);
 
     for (i=0;i<WebMidi.inputs.length;i++){
@@ -253,15 +273,19 @@ function setup() {
       inputDeviceSelector.option(devices[i]);
     }
     inputDevice = 0;
-  }
+  
   
   // IN CHANNEL
 
-    inputChannelLabel = createP("channel");
-    inputChannelLabel.parent(midiParent);
+    // inputChannelLabel = createP("channel");
+    // inputChannelLabel.parent(midiParent);
 
     inputChannelSelector = createSelect();
     inputChannelSelector.parent(midiParent);
+    inputChannelSelector.id('halfsize');
+
+    inputChannelSelector.option('~channel~');
+    inputChannelSelector.disable('~channel~');
     
     for (j=0;j<8;j++){
       inputChannelSelector.option(j+1);
@@ -282,25 +306,38 @@ function setup() {
     //inputCCSelect.parent(midiParent);
     //inputCCVal = 1;
     
-    // IN CC FUNCT
-    inputCCFunctionLabel = createP("CC Func");
-    inputCCFunctionLabel.parent(midiParent);
+    // IN CC FUNCTION
+    // inputCCFunctionLabel = createP("CC map");
+    // inputCCFunctionLabel.parent(midiParent);
+
     inputCCFunctionSelect = createSelect();
     
-    inputCCFunctionSelect.option('~ select function ~');
-    inputCCFunctionSelect.disable('~ select function ~');
+    inputCCFunctionSelect.option('~ CC map ~');
+    inputCCFunctionSelect.disable('~ CC map ~');
     inputCCFunctionSelect.option('vol');
-    inputCCFunctionSelect.option('bpm');
+    inputCCFunctionSelect.option('speed');
+    inputCCFunctionSelect.option('transpose');
+    inputCCFunctionSelect.option('randomize');
+    inputCCFunctionSelect.option('interval');
     
     inputCCFunctionSelect.changed(inputCCFunctionChange);
     inputCCListening = false;
     inputCCFunctionMap = [
         {vol: 0},
-        {bpm: 0}
-    ]
+        {speed: 0},
+        {transpose: 0},
+        {randomize: 0},
+        {interval: 0}
+    ];
     
     inputCCFunctionSelect.parent(midiParent);
     inputCCVal = 1;
+
+
+    listeningP = createP('listening for CC');
+    listeningP.parent(midiParent);
+    listeningP.hide();
+  }
   
 
 }
@@ -419,13 +456,6 @@ var Planet = function(offset, diameter, ratio, name, index){
   };
 
 };
-
-function radialStrings(){
-  push();
-    
-
-  pop();
-}
 
 function mousePressed() {
   userStartAudio();
@@ -550,14 +580,7 @@ function transposeKeyHide(){
   transposeP.innerHTML = ("transpose");
 }
 
-function midiInputTranspose(e){
-  console.log('played: ' + e.note.name + e.note.octave + ", " + e.note.number);
-  var base = 62;
-  var num = e.note.number;
-  var middle = (transposeSlider.max - transposeSlider.min)*0.5
-  transposeSlider.value = middle + ((num - base));
-  transposeSliderChange();
-}
+
 
 function startSunMidi(){
   // SEND MIDI DRONE START
@@ -657,14 +680,14 @@ function intervalSelector(){
   var newNotes = [];
   var ind = 0;
 
-  if (intervalVal == 0){
+  if (intervalVal == 3){
     // FIFTHS
     console.log('new interval: fifths!');
     for (i=0;i<notes.length;i++){
       ind = midiScale.findIndex(n => n === notes[i].y);
       notes[i].x = midiScale[ind+4];
     }
-  } else if (intervalVal == 1){
+  } else if (intervalVal == 2){
     // FOURTHS
     console.log('new interval: fourths!');
     for (i=0;i<notes.length;i++){
@@ -672,14 +695,14 @@ function intervalSelector(){
       notes[i].x = midiScale[ind+3];
     }
 
-  } else if (intervalVal == 2){
+  } else if (intervalVal == 1){
     // THIRDS
     console.log('new interval: thirds!');
     for (i=0;i<notes.length;i++){
       ind = midiScale.findIndex(n => n === notes[i].y);
       notes[i].x = midiScale[ind+2];
     }
-  } else if (intervalVal == 3){
+  } else if (intervalVal == 0){
     // SECONDS
     console.log('new interval: seconds!');
     for (i=0;i<notes.length;i++){
@@ -687,21 +710,21 @@ function intervalSelector(){
       notes[i].x = midiScale[ind+1];
     }
   }  else if (intervalVal == 4){
-    // SECONDS
+    // SIXTHS
     console.log('new interval: sixths!');
     for (i=0;i<notes.length;i++){
       ind = midiScale.findIndex(n => n === notes[i].y);
       notes[i].x = midiScale[ind+5];
     }
   }  else if (intervalVal == 5){
-    // SECONDS
+    // SEVENTHS
     console.log('new interval: sevenths!');
     for (i=0;i<notes.length;i++){
       ind = midiScale.findIndex(n => n === notes[i].y);
       notes[i].x = midiScale[ind+6];
     }
   }  else if (intervalVal == 6){
-    // SECONDS
+    // OCTAVES
     console.log('new interval: octaves!');
     for (i=0;i<notes.length;i++){
       ind = midiScale.findIndex(n => n === notes[i].y);
@@ -742,9 +765,9 @@ function midiScopeChange(){
   
 }
 
-function randomizer(){
+function randomizer(probability){
   for (i=0;i<planets.length;i++){
-    if (random() > 0.5){ // turn it on!
+    if (random() < probability){ // turn it on!
       
       if (planets[i].name == 'sun'){
         if (!planets[i].on){
@@ -784,7 +807,7 @@ function midiOutputChange(){
   stopSunMidi();
   var newDevice = deviceSelector.value().charAt(0);
   for (i=0;i<planets.length;i++){
-    if (midiScope == "planets"){
+    if (midiScope == "all"){
       if (i==0){
         console.log("midi output for all planets changed to: " + newDevice);
       }
@@ -804,7 +827,7 @@ function midiChannelChange(){
   stopSunMidi();
   var newChannel = channelSelector.value().charAt(0);
   for (i=0;i<planets.length;i++){
-    if (midiScope == "planets"){
+    if (midiScope == "all"){
       if (i==0){
         console.log("channel for all planets changed to: " + channelSelector.value());
       }
@@ -835,21 +858,75 @@ function midiInputChange(){
   var newDevice = inputDeviceSelector.value().charAt(0);
   var input = WebMidi.inputs[newDevice];
   console.log(input);
-  input.addListener('noteon', inputActiveChannel, midiInputTranspose);
+  input.addListener('noteon', inputActiveChannel, midiNoteInput);
   input.addListener('controlchange', inputActiveChannel, midiCCHandler);
 }
 
-function midiCCHandler(){
+function midiCCHandler(e){
+
+  // if it's in listening mode, register new CC number in the functionMap
   if (inputCCListening){
-    
-    
-    inputCCFunctionLabel.innerHTML = ("CC Func: Learned");
+    var currentSelector = inputCCFunctionSelect.value();
+    console.log("CC mapped: " + currentSelector + ", " + e.controller.number);
+    if (currentSelector == "vol"){
+      inputCCFunctionMap.vol = e.controller.number;
+    } else if (currentSelector == "speed"){
+      inputCCFunctionMap.speed = e.controller.number;
+    } else if (currentSelector == "transpose"){
+      inputCCFunctionMap.transpose = e.controller.number;
+    } else if (currentSelector == "interval"){
+      inputCCFunctionMap.interval = e.controller.number;
+    } else if (currentSelector == "randomize"){
+      inputCCFunctionMap.randomize = e.controller.number;
+    }
+
+    listeningP.hide();
     inputCCListening = false;
+
+  }
+
+  // if the CC number matches a slider's functionMap value, move the slider & trigger change event
+
+  if (inputCCFunctionMap.vol == e.controller.number){
+    console.log("volume changed by CC" + e.controller.number);
+    volumeSlider.value = map(e.value, 0, 127, volumeSlider.min, volumeSlider.max);
+    volumeSliderChange();
+  } else if (inputCCFunctionMap.speed == e.controller.number){
+    console.log("speed changed by CC" + e.controller.number);
+    bpmSlider.value = map(e.value, 0, 127, bpmSlider.min, 1000);
+    bpmSliderChange();
+  } else if (inputCCFunctionMap.transpose == e.controller.number){
+    console.log("transpose changed by CC" + e.controller.number);
+    transposeSlider.value = map(e.value, 0, 127, transposeSlider.min, transposeSlider.max);
+    transposeSliderChange();
+  }  else if (inputCCFunctionMap.interval == e.controller.number){
+    var startingInterval = intervalSelect.value;
+    console.log("interval changed by CC" + e.controller.number);
+    intervalSelect.value = round(map(e.value, 0, 127, 0, 6));
+    var newInterval = intervalSelect.value;
+    if (startingInterval != newInterval){
+      intervalSelector();
+    }
+  }  else if (inputCCFunctionMap.randomize == e.controller.number){
+    var randomProb = map(e.value, 0, 127, 0.1, 0.9);
+    var randomProbReadable = (randomProb*10).toFixed(2);
+    console.log("randomized by CC" + e.controller.number + " with probability " + randomProbReadable + "/10");
+    randomizer(randomProb);
   }
 }
 
+function midiNoteInput(e){
+  // console.log('played: ' + e.note.name + e.note.octave + ", " + e.note.number);
+  // var base = 62;
+  // var num = e.note.number;
+  // var middle = (transposeSlider.max - transposeSlider.min)*0.5
+  // transposeSlider.value = middle + ((num - base));
+  // transposeSliderChange();
+}
+
 function inputCCFunctionChange(){
-  console.log('changed');
   inputCCListening = true;
-  inputCCFunctionLabel.innerHTML = ("CC Func: Listening");
+  console.log('changed, listening for CC input');
+  // inputCCFunctionLabel.html("CC map: listening");
+  listeningP.show();
 }

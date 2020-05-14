@@ -27,13 +27,13 @@
         <p class="sliderP" id="volumeP">vol</p>
           <input type="range" min="0" max="100" value="50" class="slider" id="volumeSlider" oninput="volumeSliderChange()">
 
-        <p class="sliderP" id="bpmP">bpm</p>
+        <p class="sliderP" id="bpmP">speed</p>
           <input type="range" min="120" max="800" value="626" class="slider" id="bpmSlider" oninput="bpmSliderChange()">
         
         <p class="sliderP" id="transposeP">transpose</p>
           <input type="range" min="0" max="24" value="12" class="slider" id="transposeSlider" onmouseover="transposeKeyShow()" onmouseout="transposeKeyHide()" oninput="transposeSliderChange(), transposeKeyShow()">
           
-        <p class="randomize"><a onclick="randomizer()">randomize</a></p>
+        <p class="randomize"><a onclick="randomizer(0.5)">randomize</a></p>
         
         
         <p>interval</p>
@@ -41,10 +41,10 @@
             <option value="6" >octaves</option>
             <option value="5" >sevenths</option>
             <option value="4" >sixths</option>
-            <option value="0" selected>fifths</option>
-            <option value="1">fourths</option>
-            <option value="2">thirds</option>
-            <option value="3">seconds</option>
+            <option value="3" selected>fifths</option>
+            <option value="2">fourths</option>
+            <option value="1">thirds</option>
+            <option value="0">seconds</option>
           </select>
         
         <p>osc type</p>
