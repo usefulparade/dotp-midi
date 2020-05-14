@@ -5,10 +5,13 @@ var webMidiSupported, midiParent;
 var midiScope, scopeLabel, scopeSelector;
 var devices = [];
 var deviceLabel, deviceSelector, outputDevice, midiParent;
+var channelLabel, channelSelector, activeChannel;
 var inputDevices = [];
 var inputDeviceLabel, inputDeviceSelector, inputDevice;
-var channelLabel, channelSelector, activeChannel;
-var clockCheckbox;
+var inputChannelLabel, inputChannelSelector, inputActiveChannel;
+var inputCCLabel, inputCCSelect, inputCCVal;
+var inputCCFunctionLabel, inputCCFunctionSelector, inputCCFunction, inputCCListening;
+var inputCCFunctionMap = [];
 
 var sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune;
 
@@ -214,14 +217,13 @@ function setup() {
     }
     outputDevice = 0;
 
-    // CHANNEL
+    // OUT CHANNEL
 
     channelLabel = createP("channel");
     channelLabel.parent(midiParent);
 
     channelSelector = createSelect();
     channelSelector.parent(midiParent);
-    // channelSelector.addClass("select");
     
     for (j=0;j<8;j++){
       channelSelector.option(j+1);
@@ -252,9 +254,53 @@ function setup() {
     }
     inputDevice = 0;
   }
+  
+  // IN CHANNEL
 
+    inputChannelLabel = createP("channel");
+    inputChannelLabel.parent(midiParent);
+
+    inputChannelSelector = createSelect();
+    inputChannelSelector.parent(midiParent);
     
-
+    for (j=0;j<8;j++){
+      inputChannelSelector.option(j+1);
+    }
+    inputChannelSelector.changed(midiInputChannelChange);
+    inputActiveChannel = 1;
+    
+    
+    // IN CC
+    
+    //inputCCLabel = createP("CC");
+    //inputCCLabel.parent(midiParent);
+    //inputCCSelect = createSelect();
+    
+    //for (k=0;k<128;k++){
+      //inputCCSelect.option(k+1);
+    //}
+    //inputCCSelect.parent(midiParent);
+    //inputCCVal = 1;
+    
+    // IN CC FUNCT
+    inputCCFunctionLabel = createP("CC Func");
+    inputCCFunctionLabel.parent(midiParent);
+    inputCCFunctionSelect = createSelect();
+    
+    inputCCFunctionSelect.option('~ select function ~');
+    inputCCFunctionSelect.disable('~ select function ~');
+    inputCCFunctionSelect.option('vol');
+    inputCCFunctionSelect.option('bpm');
+    
+    inputCCFunctionSelect.changed(inputCCFunctionChange);
+    inputCCListening = false;
+    inputCCFunctionMap = [
+        {vol: 0},
+        {bpm: 0}
+    ]
+    
+    inputCCFunctionSelect.parent(midiParent);
+    inputCCVal = 1;
   
 
 }
@@ -775,6 +821,11 @@ function midiChannelChange(){
   startSunMidi();
 }
 
+function midiInputChannelChange(){
+  inputActiveChannel = inputChannelSelector.value();
+  midiInputChange();
+}
+
 function midiInputChange(){
   
   for (i=0;i<WebMidi.inputs.length;i++){
@@ -784,5 +835,21 @@ function midiInputChange(){
   var newDevice = inputDeviceSelector.value().charAt(0);
   var input = WebMidi.inputs[newDevice];
   console.log(input);
-  input.addListener('noteon', 'all', midiInputTranspose);
+  input.addListener('noteon', inputActiveChannel, midiInputTranspose);
+  input.addListener('controlchange', inputActiveChannel, midiCCHandler);
+}
+
+function midiCCHandler(){
+  if (inputCCListening){
+    
+    
+    inputCCFunctionLabel.innerHTML = ("CC Func: Learned");
+    inputCCListening = false;
+  }
+}
+
+function inputCCFunctionChange(){
+  console.log('changed');
+  inputCCListening = true;
+  inputCCFunctionLabel.innerHTML = ("CC Func: Listening");
 }
