@@ -12,7 +12,9 @@ var inputChannelLabel, inputChannelSelector, inputActiveChannel;
 var inputCCLabel, inputCCSelect, inputCCVal;
 var inputCCFunctionLabel, inputCCFunctionSelect, inputCCFunction, inputCCListening;
 var inputCCFunctionMap = [];
+var keyboardMapSelector, currentKeyboardMap;
 var midiOutLabel, midiInLabel, outputDiv, inputDiv, listeningP;
+
 
 var sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune;
 
@@ -296,19 +298,8 @@ function setup() {
     
     // IN CC
     
-    //inputCCLabel = createP("CC");
-    //inputCCLabel.parent(midiParent);
-    //inputCCSelect = createSelect();
-    
-    //for (k=0;k<128;k++){
-      //inputCCSelect.option(k+1);
-    //}
-    //inputCCSelect.parent(midiParent);
-    //inputCCVal = 1;
     
     // IN CC FUNCTION
-    // inputCCFunctionLabel = createP("CC map");
-    // inputCCFunctionLabel.parent(midiParent);
 
     inputCCFunctionSelect = createSelect();
     
@@ -333,10 +324,21 @@ function setup() {
     inputCCFunctionSelect.parent(midiParent);
     inputCCVal = 1;
 
-
     listeningP = createP('listening for CC');
     listeningP.parent(midiParent);
     listeningP.hide();
+
+    // KEYBOARD MAP
+
+    keyboardMapSelector = createSelect();
+    keyboardMapSelector.option('~ keyboard map ~');
+    keyboardMapSelector.disable('~ keyboard map ~');
+    keyboardMapSelector.option('toggle planets');
+    keyboardMapSelector.option('transpose');
+
+    keyboardMapSelector.changed(keyboardMapChange);
+
+    keyboardMapSelector.parent(midiParent);
   }
   
 
@@ -806,6 +808,7 @@ function midiOutputChange(){
   WebMidi.outputs[outputDevice].sendStop();
   stopSunMidi();
   var newDevice = deviceSelector.value().charAt(0);
+  outputDevice = newDevice;
   for (i=0;i<planets.length;i++){
     if (midiScope == "all"){
       if (i==0){
@@ -826,6 +829,7 @@ function midiChannelChange(){
   WebMidi.outputs[outputDevice].sendStop();
   stopSunMidi();
   var newChannel = channelSelector.value().charAt(0);
+  activeChannel = newChannel;
   for (i=0;i<planets.length;i++){
     if (midiScope == "all"){
       if (i==0){
@@ -856,6 +860,7 @@ function midiInputChange(){
   }
 
   var newDevice = inputDeviceSelector.value().charAt(0);
+  inputDevice = newDevice;
   var input = WebMidi.inputs[newDevice];
   console.log(input);
   input.addListener('noteon', inputActiveChannel, midiNoteInput);
@@ -916,12 +921,47 @@ function midiCCHandler(e){
 }
 
 function midiNoteInput(e){
-  // console.log('played: ' + e.note.name + e.note.octave + ", " + e.note.number);
-  // var base = 62;
-  // var num = e.note.number;
-  // var middle = (transposeSlider.max - transposeSlider.min)*0.5
-  // transposeSlider.value = middle + ((num - base));
-  // transposeSliderChange();
+  var currentKeyboardMap = keyboardMapSelector.value();
+  var num = e.note.number;
+
+  console.log('played: ' + e.note.name + e.note.octave + ", " + e.note.number);
+
+  if (num != notes[8].x && num != notes[8].y && num != notes[9].x && num != notes[9].y){
+    if (currentKeyboardMap == 'toggle planets'){
+      var c = 60;
+      var val = (c + num)%12;
+      for (i=0;i<12;i++){
+        if (i<8){
+          if (val == i){
+            planets[i].on = !planets[i].on;
+          }
+        } else {
+          if (val == i){
+            if (planets[8].on != true){
+              planets[8].on = !planets[8].on;
+              for (i=8;i<12;i++){
+                envelopes[i].triggerAttack();
+              }
+              startSunMidi();
+            } else {
+              stopSunMidi();
+              planets[8].on = !planets[8].on;
+              for (i=8;i<12;i++){
+                envelopes[i].triggerRelease();
+              }
+            }
+          }
+        }
+      }
+
+    } else if (currentKeyboardMap == 'transpose'){
+      
+        var base = 62;
+        var middle = (transposeSlider.max - transposeSlider.min)*0.5;
+        transposeSlider.value = middle + ((num - base));
+        transposeSliderChange();
+    }
+  }
 }
 
 function inputCCFunctionChange(){
@@ -929,4 +969,8 @@ function inputCCFunctionChange(){
   console.log('changed, listening for CC input');
   // inputCCFunctionLabel.html("CC map: listening");
   listeningP.show();
+}
+
+function keyboardMapChange(){
+
 }
