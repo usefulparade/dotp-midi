@@ -1,7 +1,8 @@
 var canvWidth, canvHeight;
 var c, cParent;
 
-var webMidiSupported, midiParent;
+var webMidiSupported, webMidiMade, midiParent;
+var webMidiCheckDone = false;
 var midiScope, scopeLabel, scopeSelector;
 var devices = [];
 var deviceLabel, deviceSelector, outputDevice, midiParent;
@@ -57,6 +58,8 @@ WebMidi.enable(function(err) {
     console.log(WebMidi.inputs);
     console.log(WebMidi.outputs);
   }
+  webMidiCheckDone = true;
+  // makeMidiOptions();
 });
 
 function setup() {
@@ -179,167 +182,181 @@ function setup() {
 
   intervalSelect = document.getElementById('intervalSelect');
 
+
   midiParent = document.getElementById('midiOptions');
 
-  if (webMidiSupported){
-    var divider = createP("~ ~ ~");
-    divider.parent(midiParent);
+  webMidiMade = false;
 
-    // MIDI OUT
+  // WebMidi.enable(function(err) {
+  //   if (err) {
+  //     console.log("An error occurred", err);
+  //     webMidiSupported = false;
+  //   } else {
+  //     webMidiSupported = true;
+  //     console.log(WebMidi.inputs);
+  //     console.log(WebMidi.outputs);
+  //   }
+  // });
 
-    midiOutLabel = createP("midi out");
-    midiOutLabel.parent(midiParent);
+  // if (webMidiSupported){
+  //   var divider = createP("~ ~ ~");
+  //   divider.parent(midiParent);
 
-    // SCOPE
+  //   // MIDI OUT
 
-    // scopeLabel = createP("midi scope");
-    // scopeLabel.parent(midiParent);
+  //   midiOutLabel = createP("midi out");
+  //   midiOutLabel.parent(midiParent);
 
-    scopeSelector = createSelect();
-    scopeSelector.parent(midiParent);
-    scopeSelector.option("~ scope ~");
-    scopeSelector.disable("~ scope ~");
+  //   // SCOPE
 
-    scopeSelector.option("all");
+  //   // scopeLabel = createP("midi scope");
+  //   // scopeLabel.parent(midiParent);
 
-    for(i=0;i<planets.length;i++){
-      scopeSelector.option("" + planets[i].name);
-    }
-    midiScope = 'all';
-    scopeSelector.changed(midiScopeChange);
+  //   scopeSelector = createSelect();
+  //   scopeSelector.parent(midiParent);
+  //   scopeSelector.option("~ scope ~");
+  //   scopeSelector.disable("~ scope ~");
+
+  //   scopeSelector.option("all");
+
+  //   for(i=0;i<planets.length;i++){
+  //     scopeSelector.option("" + planets[i].name);
+  //   }
+  //   midiScope = 'all';
+  //   scopeSelector.changed(midiScopeChange);
 
 
-    // OUTPUT DEVICE
+  //   // OUTPUT DEVICE
 
-    // deviceLabel = createP("output device");
-    // deviceLabel.parent(midiParent);
+  //   // deviceLabel = createP("output device");
+  //   // deviceLabel.parent(midiParent);
     
-    deviceSelector = createSelect();
-    deviceSelector.parent(midiParent);
-    deviceSelector.id('halfsize');
+  //   deviceSelector = createSelect();
+  //   deviceSelector.parent(midiParent);
+  //   deviceSelector.id('halfsize');
 
-    deviceSelector.option('~device~');
-    deviceSelector.disable('~device~');
-    deviceSelector.changed(midiOutputChange);
+  //   deviceSelector.option('~device~');
+  //   deviceSelector.disable('~device~');
+  //   deviceSelector.changed(midiOutputChange);
 
-    for (i=0;i<WebMidi.outputs.length;i++){
-      var name = WebMidi.outputs[i]._midiOutput.name;
-      devices[i] = "" + i + " " + name;
-      deviceSelector.option(devices[i]);
-    }
-    outputDevice = 0;
+  //   for (i=0;i<WebMidi.outputs.length;i++){
+  //     var name = WebMidi.outputs[i]._midiOutput.name;
+  //     devices[i] = "" + i + " " + name;
+  //     deviceSelector.option(devices[i]);
+  //   }
+  //   outputDevice = 0;
 
-    // OUT CHANNEL
+  //   // OUT CHANNEL
 
-    // channelLabel = createP("channel");
-    // channelLabel.parent(midiParent);
+  //   // channelLabel = createP("channel");
+  //   // channelLabel.parent(midiParent);
 
-    channelSelector = createSelect();
-    channelSelector.id('halfsize');
-    channelSelector.parent(midiParent);
+  //   channelSelector = createSelect();
+  //   channelSelector.id('halfsize');
+  //   channelSelector.parent(midiParent);
 
-    channelSelector.option('~channel~');
-    channelSelector.disable('~channel~');
+  //   channelSelector.option('~channel~');
+  //   channelSelector.disable('~channel~');
     
-    for (j=0;j<8;j++){
-      channelSelector.option(j+1);
-    }
-    channelSelector.changed(midiChannelChange);
-    activeChannel = 1;
+  //   for (j=0;j<8;j++){
+  //     channelSelector.option(j+1);
+  //   }
+  //   channelSelector.changed(midiChannelChange);
+  //   activeChannel = 1;
 
-    // clockCheckbox = createCheckbox(' send clock', false);
-    // clockCheckbox.parent(midiParent);
-    // clockCheckbox.class("checkbox");
+  //   // clockCheckbox = createCheckbox(' send clock', false);
+  //   // clockCheckbox.parent(midiParent);
+  //   // clockCheckbox.class("checkbox");
   
-    // MIDI INPUT
+  //   // MIDI INPUT
 
-    midiInputLabel = createP("midi in");
-    midiInputLabel.parent(midiParent);
+  //   midiInputLabel = createP("midi in");
+  //   midiInputLabel.parent(midiParent);
 
-    //INPUT DEVICE
+  //   //INPUT DEVICE
 
-    // inputDeviceLabel = createP("input device");
-    // inputDeviceLabel.parent(midiParent);
+  //   // inputDeviceLabel = createP("input device");
+  //   // inputDeviceLabel.parent(midiParent);
     
-    inputDeviceSelector = createSelect();
-    inputDeviceSelector.parent(midiParent);
-    inputDeviceSelector.id('halfsize');
+  //   inputDeviceSelector = createSelect();
+  //   inputDeviceSelector.parent(midiParent);
+  //   inputDeviceSelector.id('halfsize');
 
-    inputDeviceSelector.option('~device~');
-    inputDeviceSelector.disable('~device~');
-    inputDeviceSelector.changed(midiInputChange);
+  //   inputDeviceSelector.option('~device~');
+  //   inputDeviceSelector.disable('~device~');
+  //   inputDeviceSelector.changed(midiInputChange);
 
-    for (i=0;i<WebMidi.inputs.length;i++){
-      var inputName = WebMidi.inputs[i]._midiInput.name;
-      inputDevices[i] = "" + i + " " + inputName;
-      inputDeviceSelector.option(devices[i]);
-    }
-    inputDevice = 0;
+  //   for (i=0;i<WebMidi.inputs.length;i++){
+  //     var inputName = WebMidi.inputs[i]._midiInput.name;
+  //     inputDevices[i] = "" + i + " " + inputName;
+  //     inputDeviceSelector.option(devices[i]);
+  //   }
+  //   inputDevice = 0;
   
   
-  // IN CHANNEL
+  // // IN CHANNEL
 
-    // inputChannelLabel = createP("channel");
-    // inputChannelLabel.parent(midiParent);
+  //   // inputChannelLabel = createP("channel");
+  //   // inputChannelLabel.parent(midiParent);
 
-    inputChannelSelector = createSelect();
-    inputChannelSelector.parent(midiParent);
-    inputChannelSelector.id('halfsize');
+  //   inputChannelSelector = createSelect();
+  //   inputChannelSelector.parent(midiParent);
+  //   inputChannelSelector.id('halfsize');
 
-    inputChannelSelector.option('~channel~');
-    inputChannelSelector.disable('~channel~');
+  //   inputChannelSelector.option('~channel~');
+  //   inputChannelSelector.disable('~channel~');
     
-    for (j=0;j<8;j++){
-      inputChannelSelector.option(j+1);
-    }
-    inputChannelSelector.changed(midiInputChannelChange);
-    inputActiveChannel = 1;
-    
-    
-    // IN CC
+  //   for (j=0;j<8;j++){
+  //     inputChannelSelector.option(j+1);
+  //   }
+  //   inputChannelSelector.changed(midiInputChannelChange);
+  //   inputActiveChannel = 1;
     
     
-    // IN CC FUNCTION
-
-    inputCCFunctionSelect = createSelect();
+  //   // IN CC
     
-    inputCCFunctionSelect.option('~ CC map ~');
-    inputCCFunctionSelect.disable('~ CC map ~');
-    inputCCFunctionSelect.option('vol');
-    inputCCFunctionSelect.option('speed');
-    inputCCFunctionSelect.option('transpose');
-    inputCCFunctionSelect.option('randomize');
-    inputCCFunctionSelect.option('interval');
     
-    inputCCFunctionSelect.changed(inputCCFunctionChange);
-    inputCCListening = false;
-    inputCCFunctionMap = [
-        {vol: 0},
-        {speed: 0},
-        {transpose: 0},
-        {randomize: 0},
-        {interval: 0}
-    ];
+  //   // IN CC FUNCTION
+
+  //   inputCCFunctionSelect = createSelect();
     
-    inputCCFunctionSelect.parent(midiParent);
-    inputCCVal = 1;
+  //   inputCCFunctionSelect.option('~ CC map ~');
+  //   inputCCFunctionSelect.disable('~ CC map ~');
+  //   inputCCFunctionSelect.option('vol');
+  //   inputCCFunctionSelect.option('speed');
+  //   inputCCFunctionSelect.option('transpose');
+  //   inputCCFunctionSelect.option('randomize');
+  //   inputCCFunctionSelect.option('interval');
+    
+  //   inputCCFunctionSelect.changed(inputCCFunctionChange);
+  //   inputCCListening = false;
+  //   inputCCFunctionMap = [
+  //       {vol: 0},
+  //       {speed: 0},
+  //       {transpose: 0},
+  //       {randomize: 0},
+  //       {interval: 0}
+  //   ];
+    
+  //   inputCCFunctionSelect.parent(midiParent);
+  //   inputCCVal = 1;
 
-    listeningP = createP('listening for CC');
-    listeningP.parent(midiParent);
-    listeningP.hide();
+  //   listeningP = createP('listening for CC');
+  //   listeningP.parent(midiParent);
+  //   listeningP.hide();
 
-    // KEYBOARD MAP
+  //   // KEYBOARD MAP
 
-    keyboardMapSelector = createSelect();
-    keyboardMapSelector.option('~ keyboard map ~');
-    keyboardMapSelector.disable('~ keyboard map ~');
-    keyboardMapSelector.option('toggle planets');
-    keyboardMapSelector.option('transpose');
+  //   keyboardMapSelector = createSelect();
+  //   keyboardMapSelector.option('~ keyboard map ~');
+  //   keyboardMapSelector.disable('~ keyboard map ~');
+  //   keyboardMapSelector.option('toggle planets');
+  //   keyboardMapSelector.option('transpose');
 
-    keyboardMapSelector.changed(keyboardMapChange);
+  //   keyboardMapSelector.changed(keyboardMapChange);
 
-    keyboardMapSelector.parent(midiParent);
-  }
+  //   keyboardMapSelector.parent(midiParent);
+  // }
   
 
 }
@@ -358,6 +375,13 @@ function draw() {
     planets[i].play();
   }
   pop();
+
+  if (webMidiCheckDone){
+    if (!webMidiMade){
+      makeMidiOptions();
+      webMidiMade = true;
+    }
+  }
 }
 
 var Planet = function(offset, diameter, ratio, name, index){
@@ -384,6 +408,7 @@ var Planet = function(offset, diameter, ratio, name, index){
   this.midiOutput = 0;
   this.midiChannel = 1;
   this.touchSwitched = false;
+  this.pulse = 0;
 
   this.show = function(){
 
@@ -396,6 +421,19 @@ var Planet = function(offset, diameter, ratio, name, index){
         this.pan = map(this.rotation%TWO_PI, PI, TWO_PI, -1, 1);
       }
       oscillators[this.index].pan(this.pan);
+    }
+
+    // pulses
+    if (this.name != 'sun'){
+      if (this.pulse > 0){
+        this.pulse -= (0.05*this.ratio);
+      } else {
+        this.pulse = 0;
+      }
+    } else {
+      if (this.on){
+        this.pulse = (sin(frameCount*0.05))*0.5;
+      }
     }
 
     push();
@@ -420,6 +458,7 @@ var Planet = function(offset, diameter, ratio, name, index){
           this.on = !this.on;
           this.touchSwitched = true;
         }
+        // MOUSEOVER ELLIPSE
         push();
           fill(dark);
           stroke(255);
@@ -429,13 +468,18 @@ var Planet = function(offset, diameter, ratio, name, index){
         this.over = false;
       }
 
-      if (this.on){
-        fill(255);
-      } else {
-        fill(dark);
-      }
-      stroke(255);
-      ellipse(0, 0, this.diameter);
+      // REGULAR PLANET ELLIPSE
+      push();
+        if (this.on){
+          fill(255);
+        } else {
+          fill(dark);
+        }
+        stroke(255);
+        // ellipse(0, 0, this.diameter);
+        ellipse(0, 0, this.diameter + (this.pulse*6));
+      pop();
+
     pop();
   };
 
@@ -447,11 +491,16 @@ var Planet = function(offset, diameter, ratio, name, index){
       if (floor(this.delta) == 0 && this.trigger == false){
 
         triggerNote(this.index);
+        this.pulse = 1;
         this.trigger = true;
       }
   
       if (this.delta > 1 && this.trigger == true){
         this.trigger = false;
+      }
+    } else {
+      if (this.on){
+        this.pulse = 0;
       }
     }
 
@@ -554,7 +603,6 @@ function filterSliderChange(){
 
 function transposeSliderChange(){
   stopSunMidi();
-  
   
   var middle = (transposeSlider.max - transposeSlider.min) * 0.5;
   var transposeVector = new p5.Vector(transposeSlider.value-middle, transposeSlider.value-middle);
@@ -896,15 +944,22 @@ function midiCCHandler(e){
     console.log("volume changed by CC" + e.controller.number);
     volumeSlider.value = map(e.value, 0, 127, volumeSlider.min, volumeSlider.max);
     volumeSliderChange();
-  } else if (inputCCFunctionMap.speed == e.controller.number){
+  } 
+  if (inputCCFunctionMap.speed == e.controller.number){
     console.log("speed changed by CC" + e.controller.number);
     bpmSlider.value = map(e.value, 0, 127, bpmSlider.min, 1000);
     bpmSliderChange();
-  } else if (inputCCFunctionMap.transpose == e.controller.number){
+  } 
+  if (inputCCFunctionMap.transpose == e.controller.number){
+    var startingVal = transposeSlider.value;
     console.log("transpose changed by CC" + e.controller.number);
     transposeSlider.value = map(e.value, 0, 127, transposeSlider.min, transposeSlider.max);
-    transposeSliderChange();
-  }  else if (inputCCFunctionMap.interval == e.controller.number){
+    var endingVal = transposeSlider.value;
+    if (startingVal != endingVal){
+      transposeSliderChange();
+    }
+  }
+  if (inputCCFunctionMap.interval == e.controller.number){
     var startingInterval = intervalSelect.value;
     console.log("interval changed by CC" + e.controller.number);
     intervalSelect.value = round(map(e.value, 0, 127, 0, 6));
@@ -912,7 +967,8 @@ function midiCCHandler(e){
     if (startingInterval != newInterval){
       intervalSelector();
     }
-  }  else if (inputCCFunctionMap.randomize == e.controller.number){
+  }
+  if (inputCCFunctionMap.randomize == e.controller.number){
     var randomProb = map(e.value, 0, 127, 0.1, 0.9);
     var randomProbReadable = (randomProb*10).toFixed(2);
     console.log("randomized by CC" + e.controller.number + " with probability " + randomProbReadable + "/10");
@@ -973,4 +1029,173 @@ function inputCCFunctionChange(){
 
 function keyboardMapChange(){
 
+}
+
+function makeMidiOptions(){
+
+  var divider = createP("~ ~ ~");
+  divider.parent(midiParent);
+
+  if (webMidiSupported){
+    
+
+    // MIDI OUT
+
+    midiOutLabel = createP("midi out");
+    midiOutLabel.parent(midiParent);
+
+    // SCOPE
+
+    // scopeLabel = createP("midi scope");
+    // scopeLabel.parent(midiParent);
+
+    scopeSelector = createSelect();
+    scopeSelector.parent(midiParent);
+    scopeSelector.option("~ scope ~");
+    scopeSelector.disable("~ scope ~");
+
+    scopeSelector.option("all");
+
+    for(i=0;i<planets.length;i++){
+      scopeSelector.option("" + planets[i].name);
+    }
+    midiScope = 'all';
+    scopeSelector.changed(midiScopeChange);
+
+
+    // OUTPUT DEVICE
+
+    // deviceLabel = createP("output device");
+    // deviceLabel.parent(midiParent);
+    
+    deviceSelector = createSelect();
+    deviceSelector.parent(midiParent);
+    deviceSelector.id('halfsize');
+
+    deviceSelector.option('~device~');
+    deviceSelector.disable('~device~');
+    deviceSelector.changed(midiOutputChange);
+
+    for (i=0;i<WebMidi.outputs.length;i++){
+      var name = WebMidi.outputs[i]._midiOutput.name;
+      devices[i] = "" + i + " " + name;
+      deviceSelector.option(devices[i]);
+    }
+    outputDevice = 0;
+
+    // OUT CHANNEL
+
+    // channelLabel = createP("channel");
+    // channelLabel.parent(midiParent);
+
+    channelSelector = createSelect();
+    channelSelector.id('halfsize');
+    channelSelector.parent(midiParent);
+
+    channelSelector.option('~channel~');
+    channelSelector.disable('~channel~');
+    
+    for (j=0;j<8;j++){
+      channelSelector.option(j+1);
+    }
+    channelSelector.changed(midiChannelChange);
+    activeChannel = 1;
+
+    // clockCheckbox = createCheckbox(' send clock', false);
+    // clockCheckbox.parent(midiParent);
+    // clockCheckbox.class("checkbox");
+  
+    // MIDI INPUT
+
+    midiInputLabel = createP("midi in");
+    midiInputLabel.parent(midiParent);
+
+    //INPUT DEVICE
+
+    // inputDeviceLabel = createP("input device");
+    // inputDeviceLabel.parent(midiParent);
+    
+    inputDeviceSelector = createSelect();
+    inputDeviceSelector.parent(midiParent);
+    inputDeviceSelector.id('halfsize');
+
+    inputDeviceSelector.option('~device~');
+    inputDeviceSelector.disable('~device~');
+    inputDeviceSelector.changed(midiInputChange);
+
+    for (i=0;i<WebMidi.inputs.length;i++){
+      var inputName = WebMidi.inputs[i]._midiInput.name;
+      inputDevices[i] = "" + i + " " + inputName;
+      inputDeviceSelector.option(devices[i]);
+    }
+    inputDevice = 0;
+  
+  
+  // IN CHANNEL
+
+    // inputChannelLabel = createP("channel");
+    // inputChannelLabel.parent(midiParent);
+
+    inputChannelSelector = createSelect();
+    inputChannelSelector.parent(midiParent);
+    inputChannelSelector.id('halfsize');
+
+    inputChannelSelector.option('~channel~');
+    inputChannelSelector.disable('~channel~');
+    
+    for (j=0;j<8;j++){
+      inputChannelSelector.option(j+1);
+    }
+    inputChannelSelector.changed(midiInputChannelChange);
+    inputActiveChannel = 1;
+    
+    
+    // IN CC
+    
+    
+    // IN CC FUNCTION
+
+    inputCCFunctionSelect = createSelect();
+    
+    inputCCFunctionSelect.option('~ CC map ~');
+    inputCCFunctionSelect.disable('~ CC map ~');
+    inputCCFunctionSelect.option('vol');
+    inputCCFunctionSelect.option('speed');
+    inputCCFunctionSelect.option('transpose');
+    inputCCFunctionSelect.option('randomize');
+    inputCCFunctionSelect.option('interval');
+    
+    inputCCFunctionSelect.changed(inputCCFunctionChange);
+    inputCCListening = false;
+    inputCCFunctionMap = [
+        {vol: 0},
+        {speed: 0},
+        {transpose: 0},
+        {randomize: 0},
+        {interval: 0}
+    ];
+    
+    inputCCFunctionSelect.parent(midiParent);
+    inputCCVal = 1;
+
+    listeningP = createP('listening for CC');
+    listeningP.parent(midiParent);
+    listeningP.hide();
+
+    // KEYBOARD MAP
+
+    keyboardMapSelector = createSelect();
+    keyboardMapSelector.option('~ keyboard map ~');
+    keyboardMapSelector.disable('~ keyboard map ~');
+    keyboardMapSelector.option('toggle planets');
+    keyboardMapSelector.option('transpose');
+
+    keyboardMapSelector.changed(keyboardMapChange);
+
+    keyboardMapSelector.parent(midiParent);
+  } else {
+    var outro = select("#outro");
+    var differentBrowser = createP("this instrument supports web midi! but it looks like your browser doesn't :( <br> come back in chrome to try it");
+    differentBrowser.parent(outro);
+  }
 }
