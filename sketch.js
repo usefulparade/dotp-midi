@@ -150,6 +150,11 @@ function setup() {
     oscillators[i] = new p5.Oscillator('sine');
     oscillators[i].start();
     oscillators[i].amp(envelopes[i]);
+    if (i > 0 && i < 12){
+      // oscillators[i].amp(oscillators[i-1]);
+      // oscillators[i].amp(envelopes[i]);
+      // oscillators[i].disconnect(oscillators[i-1]);
+    }
 
     // planet starting pitches
     if (i < 8){
@@ -186,177 +191,6 @@ function setup() {
   midiParent = document.getElementById('midiOptions');
 
   webMidiMade = false;
-
-  // WebMidi.enable(function(err) {
-  //   if (err) {
-  //     console.log("An error occurred", err);
-  //     webMidiSupported = false;
-  //   } else {
-  //     webMidiSupported = true;
-  //     console.log(WebMidi.inputs);
-  //     console.log(WebMidi.outputs);
-  //   }
-  // });
-
-  // if (webMidiSupported){
-  //   var divider = createP("~ ~ ~");
-  //   divider.parent(midiParent);
-
-  //   // MIDI OUT
-
-  //   midiOutLabel = createP("midi out");
-  //   midiOutLabel.parent(midiParent);
-
-  //   // SCOPE
-
-  //   // scopeLabel = createP("midi scope");
-  //   // scopeLabel.parent(midiParent);
-
-  //   scopeSelector = createSelect();
-  //   scopeSelector.parent(midiParent);
-  //   scopeSelector.option("~ scope ~");
-  //   scopeSelector.disable("~ scope ~");
-
-  //   scopeSelector.option("all");
-
-  //   for(i=0;i<planets.length;i++){
-  //     scopeSelector.option("" + planets[i].name);
-  //   }
-  //   midiScope = 'all';
-  //   scopeSelector.changed(midiScopeChange);
-
-
-  //   // OUTPUT DEVICE
-
-  //   // deviceLabel = createP("output device");
-  //   // deviceLabel.parent(midiParent);
-    
-  //   deviceSelector = createSelect();
-  //   deviceSelector.parent(midiParent);
-  //   deviceSelector.id('halfsize');
-
-  //   deviceSelector.option('~device~');
-  //   deviceSelector.disable('~device~');
-  //   deviceSelector.changed(midiOutputChange);
-
-  //   for (i=0;i<WebMidi.outputs.length;i++){
-  //     var name = WebMidi.outputs[i]._midiOutput.name;
-  //     devices[i] = "" + i + " " + name;
-  //     deviceSelector.option(devices[i]);
-  //   }
-  //   outputDevice = 0;
-
-  //   // OUT CHANNEL
-
-  //   // channelLabel = createP("channel");
-  //   // channelLabel.parent(midiParent);
-
-  //   channelSelector = createSelect();
-  //   channelSelector.id('halfsize');
-  //   channelSelector.parent(midiParent);
-
-  //   channelSelector.option('~channel~');
-  //   channelSelector.disable('~channel~');
-    
-  //   for (j=0;j<8;j++){
-  //     channelSelector.option(j+1);
-  //   }
-  //   channelSelector.changed(midiChannelChange);
-  //   activeChannel = 1;
-
-  //   // clockCheckbox = createCheckbox(' send clock', false);
-  //   // clockCheckbox.parent(midiParent);
-  //   // clockCheckbox.class("checkbox");
-  
-  //   // MIDI INPUT
-
-  //   midiInputLabel = createP("midi in");
-  //   midiInputLabel.parent(midiParent);
-
-  //   //INPUT DEVICE
-
-  //   // inputDeviceLabel = createP("input device");
-  //   // inputDeviceLabel.parent(midiParent);
-    
-  //   inputDeviceSelector = createSelect();
-  //   inputDeviceSelector.parent(midiParent);
-  //   inputDeviceSelector.id('halfsize');
-
-  //   inputDeviceSelector.option('~device~');
-  //   inputDeviceSelector.disable('~device~');
-  //   inputDeviceSelector.changed(midiInputChange);
-
-  //   for (i=0;i<WebMidi.inputs.length;i++){
-  //     var inputName = WebMidi.inputs[i]._midiInput.name;
-  //     inputDevices[i] = "" + i + " " + inputName;
-  //     inputDeviceSelector.option(devices[i]);
-  //   }
-  //   inputDevice = 0;
-  
-  
-  // // IN CHANNEL
-
-  //   // inputChannelLabel = createP("channel");
-  //   // inputChannelLabel.parent(midiParent);
-
-  //   inputChannelSelector = createSelect();
-  //   inputChannelSelector.parent(midiParent);
-  //   inputChannelSelector.id('halfsize');
-
-  //   inputChannelSelector.option('~channel~');
-  //   inputChannelSelector.disable('~channel~');
-    
-  //   for (j=0;j<8;j++){
-  //     inputChannelSelector.option(j+1);
-  //   }
-  //   inputChannelSelector.changed(midiInputChannelChange);
-  //   inputActiveChannel = 1;
-    
-    
-  //   // IN CC
-    
-    
-  //   // IN CC FUNCTION
-
-  //   inputCCFunctionSelect = createSelect();
-    
-  //   inputCCFunctionSelect.option('~ CC map ~');
-  //   inputCCFunctionSelect.disable('~ CC map ~');
-  //   inputCCFunctionSelect.option('vol');
-  //   inputCCFunctionSelect.option('speed');
-  //   inputCCFunctionSelect.option('transpose');
-  //   inputCCFunctionSelect.option('randomize');
-  //   inputCCFunctionSelect.option('interval');
-    
-  //   inputCCFunctionSelect.changed(inputCCFunctionChange);
-  //   inputCCListening = false;
-  //   inputCCFunctionMap = [
-  //       {vol: 0},
-  //       {speed: 0},
-  //       {transpose: 0},
-  //       {randomize: 0},
-  //       {interval: 0}
-  //   ];
-    
-  //   inputCCFunctionSelect.parent(midiParent);
-  //   inputCCVal = 1;
-
-  //   listeningP = createP('listening for CC');
-  //   listeningP.parent(midiParent);
-  //   listeningP.hide();
-
-  //   // KEYBOARD MAP
-
-  //   keyboardMapSelector = createSelect();
-  //   keyboardMapSelector.option('~ keyboard map ~');
-  //   keyboardMapSelector.disable('~ keyboard map ~');
-  //   keyboardMapSelector.option('toggle planets');
-  //   keyboardMapSelector.option('transpose');
-
-  //   keyboardMapSelector.changed(keyboardMapChange);
-
-  //   keyboardMapSelector.parent(midiParent);
-  // }
   
 
 }
@@ -409,6 +243,7 @@ var Planet = function(offset, diameter, ratio, name, index){
   this.midiChannel = 1;
   this.touchSwitched = false;
   this.pulse = 0;
+  this.trail = [new p5.Vector(this.pos.x, this.pos.y)];
 
   this.show = function(){
 
@@ -451,7 +286,8 @@ var Planet = function(offset, diameter, ratio, name, index){
       this.mouseTrans.rotate(TWO_PI-this.rotation);
       this.mouseTrans.sub(this.offset);
       
-      line(-this.rad, 0, this.rad, 0);
+      // line(-this.rad, 0, this.rad, 0);
+
       if (this.mouseTrans.x > -this.hitbox && this.mouseTrans.x < this.hitbox && this.mouseTrans.y > -this.hitbox && this.mouseTrans.y < this.hitbox){
         this.over = true;
         if (touchIsDown && !this.touchSwitched){
@@ -479,6 +315,37 @@ var Planet = function(offset, diameter, ratio, name, index){
         // ellipse(0, 0, this.diameter);
         ellipse(0, 0, this.diameter + (this.pulse*6));
       pop();
+
+      // TRAIL
+      // push();
+      //   noFill();
+      //   stroke(255);
+      //   if (this.on){
+      //     var newTrailVector = new p5.Vector(this.offset.x, this.offset.y);
+      //     newTrailVector.sub(this.offset);
+      //     this.trail.push(newTrailVector);
+          
+      //     for (k=0;k<this.trail.length;k++){
+      //       this.trail[k].add(this.offset);
+      //       this.trail[k].rotate(-this.ratio*speed);
+      //       this.trail[k].sub(this.offset);
+      //     }
+      //     console.log(this.trail);
+      //   } else {
+      //     if (this.trail.length > 0){
+      //       this.trail.shift();
+      //     }
+      //   }
+      //   if (this.trail.length > 100*(1/this.ratio)){
+      //     this.trail.shift();
+      //   }
+      //   if (this.trail.length > 2){
+      //     for(j=1;j<this.trail.length;j++){
+      //       strokeWeight(j/10);
+      //       line(this.trail[j].x, this.trail[j].y, this.trail[j-1].x, this.trail[j-1].y);
+      //     }
+      //   }
+      // pop();
 
     pop();
   };
@@ -583,7 +450,11 @@ function volumeSliderChange(){
 function attackSliderChange(){
   attack = map(attackSlider.value, 0, 100, 0, 0.3);
   for(i=0;i<envelopes.length;i++){
-    envelopes[i].setADSR(attack, decay, sustain, release+i*0.1);
+    if (i < 8){
+      envelopes[i].setADSR(attack, decay, sustain, release + i*0.1);
+    } else {
+      envelopes[i].setADSR(1, 1, 1, 1);
+    }
     console.log("attack time changed to: " + attack);
   }
 }
@@ -591,7 +462,11 @@ function attackSliderChange(){
 function releaseSliderChange(){
   release = map(releaseSlider.value, 0, 100, 0, 1);
   for(i=0;i<envelopes.length;i++){
-    envelopes[i].setADSR(attack, decay, sustain, release+i*0.1);
+    if (i < 8){
+      envelopes[i].setADSR(attack, decay, sustain, release + i*0.1);
+    } else {
+      envelopes[i].setADSR(1, 1, 1, 1);
+    }
     console.log("release time changed to: " + release);
   }
 }
@@ -1195,7 +1070,8 @@ function makeMidiOptions(){
     keyboardMapSelector.parent(midiParent);
   } else {
     var outro = select("#outro");
-    var differentBrowser = createP("this instrument supports web midi! but it looks like your browser doesn't :( <br> come back in chrome to try it");
+    var differentBrowser = createP("this instrument supports web midi! looks like your browser doesn't though :( come back in chrome to try it out");
     differentBrowser.parent(outro);
   }
 }
+
