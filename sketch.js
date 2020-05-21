@@ -15,6 +15,7 @@ var inputCCFunctionLabel, inputCCFunctionSelect, inputCCFunction, inputCCListeni
 var inputCCFunctionMap = [];
 var keyboardMapSelector, currentKeyboardMap;
 var midiOutLabel, midiInLabel, outputDiv, inputDiv, listeningP;
+var filter, filterFreq, filterRes, filterSlider, resSlider;
 
 
 var sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune;
@@ -135,6 +136,11 @@ function setup() {
   release = 0.15;
 
   // CREATE SYNTHS
+  
+  filter = new p5.LowPass();
+  filterFreq = 2200;
+  filterRes = 10;
+  filter.set(filterFreq, filterRes);
 
   for (i=0;i<12;i++){
     
@@ -148,6 +154,8 @@ function setup() {
     }
 
     oscillators[i] = new p5.Oscillator('sine');
+    oscillators[i].disconnect();
+    oscillators[i].connect(filter);
     oscillators[i].start();
     oscillators[i].amp(envelopes[i]);
     if (i > 0 && i < 12){
@@ -179,6 +187,8 @@ function setup() {
   transposeP = document.getElementById('transposeP');
   attackSlider = document.getElementById('attackSlider');
   releaseSlider = document.getElementById('releaseSlider');
+  filterSlider = document.getElementById('filterSlider');
+  resSlider = document.getElementById('resSlider');
 
   volume = 0.5;
   volumeP = document.getElementById("volumeP");
@@ -472,8 +482,10 @@ function releaseSliderChange(){
 }
 
 function filterSliderChange(){
-  var frequency = map(filterSlider.value, 0, 100, 100, 1100);
-  filter.freq(frequency);
+  filterFreq = map(filterSlider.value, 0, 100, 100, 2200);
+  filterRes = map(resSlider.value, 0, 100, 0.01, 50);
+  console.log("" + filterFreq + ", " + filterRes);
+  filter.set(filterFreq, filterRes);
 }
 
 function transposeSliderChange(){
@@ -806,6 +818,10 @@ function midiCCHandler(e){
       inputCCFunctionMap.interval = e.controller.number;
     } else if (currentSelector == "randomize"){
       inputCCFunctionMap.randomize = e.controller.number;
+    } else if (currentSelector == "filter"){
+      inputCCFunctionMap.filter = e.controller.number;
+    } else if (currentSelector == "res"){
+      inputCCFunctionMap.res = e.controller.number;
     }
 
     listeningP.hide();
@@ -848,6 +864,16 @@ function midiCCHandler(e){
     var randomProbReadable = (randomProb*10).toFixed(2);
     console.log("randomized by CC" + e.controller.number + " with probability " + randomProbReadable + "/10");
     randomizer(randomProb);
+  }
+  if (inputCCFunctionMap.filter == e.controller.number){
+    console.log("filter changed by CC" + e.controller.number);
+    filterSlider.value = map(e.value, 0, 127, filterSlider.min, filterSlider.max);
+    filterSliderChange();
+  }
+  if (inputCCFunctionMap.res == e.controller.number){
+    console.log("filter changed by CC" + e.controller.number);
+    resSlider.value = map(e.value, 0, 127, resSlider.min, resSlider.max);
+    filterSliderChange();
   }
 }
 
@@ -1039,6 +1065,8 @@ function makeMidiOptions(){
     inputCCFunctionSelect.option('transpose');
     inputCCFunctionSelect.option('randomize');
     inputCCFunctionSelect.option('interval');
+    inputCCFunctionSelect.option('filter');
+    inputCCFunctionSelect.option('res');
     
     inputCCFunctionSelect.changed(inputCCFunctionChange);
     inputCCListening = false;
@@ -1047,7 +1075,9 @@ function makeMidiOptions(){
         {speed: 0},
         {transpose: 0},
         {randomize: 0},
-        {interval: 0}
+        {interval: 0},
+        {filter: 0},
+        {res: 0}
     ];
     
     inputCCFunctionSelect.parent(midiParent);
