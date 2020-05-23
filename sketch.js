@@ -17,6 +17,8 @@ var keyboardMapSelector, currentKeyboardMap;
 var midiOutLabel, midiInLabel, outputDiv, inputDiv, listeningP;
 var filter, filterFreq, filterRes, filterSlider, resSlider;
 
+var dly, dlyTime, dlyFeedback, dlySlider, feedbackSlider, delaySliderChange;
+
 
 var sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune;
 
@@ -146,11 +148,11 @@ function setup() {
     
     envelopes[i] = new p5.Envelope();
     if (i < 8){
-      envelopes[i].setADSR(attack, decay, sustain, release + i*0.1);
       envelopes[i].setRange(0.5, 0);
+      envelopes[i].setADSR(attack, decay, sustain, release + i*0.1);
     } else {
-      envelopes[i].setADSR(1, 1, 0.1, 1);
       envelopes[i].setRange(0.15, 0);
+      envelopes[i].setADSR(1, 1, 0.5, 1);
     }
 
     oscillators[i] = new p5.Oscillator('sine');
@@ -445,7 +447,7 @@ function triggerNote(c){
 
 
 function bpmSliderChange(){
-  // speed = floor(101-bpmSlider.value);
+  speed = map(bpmSlider.value, bpmSlider.min, bpmSlider.max, 0.005, 0.02);
   mercuryBPM = (bpmSlider.max - (bpmSlider.value-bpmSlider.min)) * 0.01;
   // console.log(mercuryBPM);
   // console.log("bpm changed to: " + mercuryBPM*100);
@@ -461,9 +463,12 @@ function attackSliderChange(){
   attack = map(attackSlider.value, 0, 100, 0, 0.3);
   for(i=0;i<envelopes.length;i++){
     if (i < 8){
+      envelopes[i].setRange(0.5, 0);
       envelopes[i].setADSR(attack, decay, sustain, release + i*0.1);
     } else {
-      envelopes[i].setADSR(1, 1, 1, 1);
+      envelopes[i].setRange(0.15, 0);
+      envelopes[i].setADSR(1, 1, 0.5, 1);
+      
     }
     console.log("attack time changed to: " + attack);
   }
@@ -473,9 +478,11 @@ function releaseSliderChange(){
   release = map(releaseSlider.value, 0, 100, 0, 1);
   for(i=0;i<envelopes.length;i++){
     if (i < 8){
+      envelopes[i].setRange(0.5, 0);
       envelopes[i].setADSR(attack, decay, sustain, release + i*0.1);
     } else {
-      envelopes[i].setADSR(1, 1, 1, 1);
+      envelopes[i].setRange(0.15, 0);
+      envelopes[i].setADSR(1, 1, 0.5, 1);
     }
     console.log("release time changed to: " + release);
   }
@@ -934,12 +941,11 @@ function keyboardMapChange(){
 
 function makeMidiOptions(){
 
-  var divider = createP("~ ~ ~");
-  divider.parent(midiParent);
+  // var divider = createP("~ ~ ~");
+  // divider.parent(midiParent);
 
   if (webMidiSupported){
     
-
     // MIDI OUT
 
     midiOutLabel = createP("midi out");
@@ -1101,7 +1107,43 @@ function makeMidiOptions(){
   } else {
     var outro = select("#outro");
     var differentBrowser = createP("this instrument supports web midi! looks like your browser doesn't though :( come back in chrome to try it out");
-    differentBrowser.parent(outro);
+    differentBrowser.parent(midiParent);
+  }
+}
+
+function controlsToggle(){
+  var controls = select("#controlsInner");
+  var toggle = select("#controlsToggle");
+  if (controls.style('max-height') == "0px"){
+    toggle.html("- controls");
+    controls.style('max-height', '1000px');
+  } else {
+    toggle.html("+ controls");
+    controls.style('max-height', '0px');
+  }
+}
+
+function midiToggle(){
+  var controls = select("#midiOptions");
+  var toggle = select("#midiToggle");
+  if (controls.style('max-height') == "0px"){
+    toggle.html("- midi");
+    controls.style('max-height', '1000px');
+  } else {
+    toggle.html("+ midi");
+    controls.style('max-height', '0px');
+  }
+}
+
+function outroToggle(){
+  var outro = select("#outro");
+  var toggle = select("#outroToggle");
+  if (outro.style('max-height') == "0px"){
+    toggle.html("- about");
+    outro.style('max-height', '1000px');
+  } else {
+    toggle.html("+ about");
+    outro.style('max-height', '0px');
   }
 }
 
