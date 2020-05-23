@@ -32,9 +32,49 @@ a:hover {
 
 h1 {
   color: white;
-  font-size: 2em;
+  font-size: 1.6em;
   font-weight: 100;
 }
+
+button {
+  display: block;
+  position: relative;
+  background-color: white; /* Green */
+	width: 30%;
+  box-sizing: border-box;
+  border: 1px solid white;
+  border-color: white;
+  border-radius: 4px;
+  text-align: center;
+  color: black;
+  padding: 5px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1em;
+  font-style: bold;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  user-select: none;
+  -moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+button:hover {
+  background-color: black;
+  color: white;
+  border-color: white;
+}
+
+button:active {
+  background-color: white;
+  color: black;
+  border-color: white;
+}
+
+button:focus {
+  outline: 0;
+}
+
 
 .slider {
   -webkit-appearance: none;
@@ -163,10 +203,11 @@ select {
   font-family: 'Courier New', Courier, monospace;
   font-size: 1em;
   color: white;
+  
   padding: 5px;
 	width: 30%;
-	box-sizing: border-box;
-  border-color: white;
+  box-sizing: border-box;
+  border: 1px solid white;
   border-radius: 4px;
 	-moz-appearance: none;
 	-webkit-appearance: none;
@@ -246,14 +287,17 @@ select option {
   overflow: hidden;
   max-height: 0px;
   transition: max-height 0.3s;
-  margin-bottom: 5px;
+  /* margin-bottom: 5px; */
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 .midiOptions {
   overflow: hidden;
-  width: 320px;
+  width: 640px;
   max-height: 0px;
   transition: max-height 0.3s;
+  padding-bottom: 5px;
 }
 
 .sliders {
@@ -269,17 +313,23 @@ select option {
   overflow: hidden;
   text-align: left;
   margin-top: 10px;
-  margin-bottom: 40px;
+  /* margin-bottom: 40px; */
   width: 320px;
   max-height: 0px;
   transition: max-height 0.3s;
+  padding-bottom: 5px;
 }
 
 @media only screen and (max-width: 700px){
-  p, a {
+  p {
     font-size: 0.8em;
   }
-
+  a {
+    font-size: 0.8em;
+  }
+  a.randomize {
+    font-size: 1em;
+  }
   h1 {
     font-size: 1.6em;
   }
@@ -297,6 +347,10 @@ select option {
     top: 0px;
   }
 
+  .midiOptions {
+    width: 320px;
+  }
+
   .outro, .midiOptions {
     width: 200px;
     
@@ -305,11 +359,23 @@ select option {
     right: 40px;
   }
 
+  button {
+    width: 40%;
+  }
+
   select {
     width: 40%;
   }
   
   select#halfsize{
     width: 20%;
+  }
+
+  .game canvas {
+    display: block;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    /* width: 100%; */
   }
 }

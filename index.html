@@ -25,7 +25,8 @@
     
     <div class='controls'>
       <h1>dance of the planets</h1>
-      <p>~ ~ ~</p>
+      <!-- <p>~ ~ ~</p> -->
+      <br>
       <div class="controlsToggle" onclick="controlsToggle()"><a id="controlsToggle">+ controls</a></div>
       <div id="controlsInner" class="controlsInner">
         <p class="sliderP" id="volumeP">vol</p>
@@ -37,7 +38,8 @@
         <p class="sliderP" id="transposeP">transpose</p>
           <input type="range" min="0" max="24" value="12" class="slider" id="transposeSlider" onmouseover="transposeKeyShow()" onmouseout="transposeKeyHide()" oninput="transposeSliderChange(), transposeKeyShow()">
           
-        <p class="randomize"><a onclick="randomizer(0.5)">randomize</a></p>
+        <!-- <p>[ <a class="randomize" onclick="randomizer(0.5)">randomize</a> ]</p> -->
+        <button type="button" onclick="randomizer(0.5)">randomize</button>
         
         
         <p>interval</p>
@@ -73,8 +75,10 @@
       </div>
 
       <p>~ ~ ~</p>
+
       <div class="midiToggle" onclick="midiToggle()"><a id="midiToggle">+ midi</a></div>
       <div class="midiOptions" id="midiOptions"></div>
+
       <p>~ ~ ~</p>
       
         
@@ -86,8 +90,11 @@
         <p>a music tool & solar system sonification by <a href="https://usefulparade.com" target="_blank">Useful Parade</a> and <a href="http://www.desertmagic.org" target="_blank">Desert Magic</a></p>
         <p>built by <a target="_blank" href="http://lukewilliamsmusic.com">Luke</a> and <a target="_blank" href="http://www.alexwand.com">Alex</a> in may 2020 during the covid quarantine</p>
         <p>made with <a href="https://p5js.org" target="_blank">p5js</a> and <a href="https://github.com/djipco/webmidi" target="_blank">webmidijs</a></p>
-        <p><a target="_blank" href="http://www.danceoftheplanets.com">dotp home</a></p>
+        <p>find more at <a target="_blank" href="http://www.danceoftheplanets.com">dotp home</a></p>
       </div>
+      <!-- <p>~ ~ ~</p> -->
+      <br>
+      
       
     </div>
   </div>

@@ -1,5 +1,6 @@
 var canvWidth, canvHeight;
 var c, cParent;
+var orientationRotation;
 
 var webMidiSupported, webMidiMade, midiParent;
 var webMidiCheckDone = false;
@@ -71,8 +72,15 @@ function setup() {
 
   touchIsDown = false;
 
-  canvWidth = 750;
-  canvHeight = 750;
+  if (windowWidth > windowHeight){
+    canvWidth = 750;
+    canvHeight = windowHeight;
+    orientationRotation = 0;
+  } else {
+    canvWidth = windowWidth;
+    canvHeight = 750;
+    orientationRotation = HALF_PI;
+  }
 
   c = createCanvas(canvWidth, canvHeight);
   cParent = document.getElementById('game');
@@ -216,6 +224,7 @@ function draw() {
 
   push();
   translate(width/2, height/2);
+  rotate(orientationRotation);
   for (i=0;i<planets.length;i++){
     planets[i].show();
     planets[i].play();
@@ -295,7 +304,7 @@ var Planet = function(offset, diameter, ratio, name, index){
       }
       // adjust position of our mouse with some reversing of their translation/rotation math
 
-      this.mouseTrans.rotate(TWO_PI-this.rotation);
+      this.mouseTrans.rotate(TWO_PI - orientationRotation - this.rotation);
       this.mouseTrans.sub(this.offset);
       
       // line(-this.rad, 0, this.rad, 0);
@@ -561,7 +570,13 @@ function remapSunPitches(){
 }
 
 function windowResized(){
-  // resizeCanvas(windowWidth, windowHeight);
+  if (windowWidth > windowHeight){
+    resizeCanvas(750, windowHeight);
+    orientationRotation = 0;
+  } else {
+    resizeCanvas(windowWidth, 750);
+    orientationRotation = HALF_PI;
+  }
 }
 
 function touchStarted(){
