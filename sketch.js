@@ -18,8 +18,7 @@ var keyboardMapSelector, currentKeyboardMap;
 var midiOutLabel, midiInLabel, outputDiv, inputDiv, listeningP;
 var filter, filterFreq, filterRes, filterSlider, resSlider;
 
-var dly, dlyTime, dlyFeedback, dlySlider, feedbackSlider, delaySliderChange;
-
+var dly, dlyVol, dlyTime, dlyFeedback, dlySlider, timeSlider, feedbackSlider;
 
 var sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune;
 
@@ -38,6 +37,7 @@ var speed;
 var dark;
 
 var oscillators = [];
+var noiseOscillators = [];
 
 var envelopes = [];
 
@@ -147,11 +147,28 @@ function setup() {
 
   // CREATE SYNTHS
   
+  // filter
   filter = new p5.LowPass();
   filterFreq = 2200;
   filterRes = 10;
   filter.set(filterFreq, filterRes);
+  
+  // delay
+  dlyVol = 0;
+  dlyTime = 0.5;
+  dlyFeedback = 0.5;
+  dly = new p5.Delay();
+  dly.amp(dlyVol);
+  dly.delayTime(dlyTime);
+  dly.feedback(dlyFeedback);
+  
+  filter.chain(dly);
+  
+  dlySlider = select('#dlySlider');
+  timeSlider = select('#dlyTimeSlider');
+  feedbackSlider = select('#dlyFeedbackSlider');
 
+  // envelopes & oscillators
   for (i=0;i<12;i++){
     
     envelopes[i] = new p5.Envelope();
@@ -162,12 +179,18 @@ function setup() {
       envelopes[i].setRange(0.15, 0);
       envelopes[i].setADSR(1, 1, 0.5, 1);
     }
-
+    
     oscillators[i] = new p5.Oscillator('sine');
     oscillators[i].disconnect();
     oscillators[i].connect(filter);
     oscillators[i].start();
     oscillators[i].amp(envelopes[i]);
+    
+    noiseOscillators[i] = new p5.Noise('brown');
+    noiseOscillators[i].disconnect();
+    noiseOscillators[i].start();
+    noiseOscillators[i].amp(envelopes[i]);
+    
     if (i > 0 && i < 12){
       // oscillators[i].amp(oscillators[i-1]);
       // oscillators[i].amp(envelopes[i]);
@@ -186,6 +209,9 @@ function setup() {
   oscillators[10].freq(midiToFreq(notes[9].x));
   oscillators[11].freq(midiToFreq(notes[9].y));
 
+
+  
+  
   speed = 0.01;
 
   dark = color(15, 15, 19);
@@ -697,9 +723,18 @@ function intervalSelector(){
 
 function oscSelector(newOsc){
   var osc = newOsc.value;
+  
   for (i=0;i<oscillators.length;i++){
-    oscillators[i].setType(osc);
+    if (osc != 'noise'){
+      noiseOscillators[i].disconnect();
+      oscillators[i].connect(filter);
+      oscillators[i].setType(osc);
+    } else {
+      oscillators[i].disconnect();
+      noiseOscillators[i].connect(filter);
+    }
   }
+  
 
 }
 
@@ -844,6 +879,12 @@ function midiCCHandler(e){
       inputCCFunctionMap.filter = e.controller.number;
     } else if (currentSelector == "res"){
       inputCCFunctionMap.res = e.controller.number;
+    } else if (currentSelector == "delay"){
+      inputCCFunctionMap.dly = e.controller.number;
+    } else if (currentSelector == "delay time"){
+      inputCCFunctionMap.dlyTime = e.controller.number;
+    } else if (currentSelector == "delay feedback"){
+      inputCCFunctionMap.dlyFeedback = e.controller.number;
     }
 
     listeningP.hide();
@@ -896,6 +937,21 @@ function midiCCHandler(e){
     console.log("filter changed by CC" + e.controller.number);
     resSlider.value = map(e.value, 0, 127, resSlider.min, resSlider.max);
     filterSliderChange();
+  }
+  if (inputCCFunctionMap.dly == e.controller.number){
+    console.log("delay changed by CC" + e.controller.number);
+    dlySlider.value = map(e.value, 0, 127, resSlider.min, resSlider.max);
+    dlySliderChange();
+  }
+  if (inputCCFunctionMap.dlyTime == e.controller.number){
+    console.log("delay time changed by CC" + e.controller.number);
+    timeSlider.value = map(e.value, 0, 127, resSlider.min, resSlider.max);
+    dlySliderChange();
+  }
+  if (inputCCFunctionMap.dlyFeedback == e.controller.number){
+    console.log("delay feedback changed by CC" + e.controller.number);
+    feedbackSlider.value = map(e.value, 0, 127, resSlider.min, resSlider.max);
+    dlySliderChange();
   }
 }
 
@@ -1088,6 +1144,9 @@ function makeMidiOptions(){
     inputCCFunctionSelect.option('interval');
     inputCCFunctionSelect.option('filter');
     inputCCFunctionSelect.option('res');
+    inputCCFunctionSelect.option('delay');
+    inputCCFunctionSelect.option('delay time');
+    inputCCFunctionSelect.option('delay feedback');
     
     inputCCFunctionSelect.changed(inputCCFunctionChange);
     inputCCListening = false;
@@ -1098,7 +1157,10 @@ function makeMidiOptions(){
         {randomize: 0},
         {interval: 0},
         {filter: 0},
-        {res: 0}
+        {res: 0},
+        {dly: 0},
+        {dlyTime: 0},
+        {dlyFeedback: 0}
     ];
     
     inputCCFunctionSelect.parent(midiParent);
@@ -1124,6 +1186,16 @@ function makeMidiOptions(){
     var differentBrowser = createP("this instrument supports web midi! looks like your browser doesn't though :( come back in chrome to try it out");
     differentBrowser.parent(midiParent);
   }
+}
+
+function dlySliderChange(){
+  dlyVol = map(dlySlider.value(), 0, 100, 0, 1);
+  dlyTime = map(timeSlider.value(), 0, 100, 0, 1);
+  dlyFeedback = map(feedbackSlider.value(), 0, 100, 0, 1);
+  
+  dly.amp(dlyVol);
+  dly.delayTime(dlyTime);
+  dly.feedback(dlyFeedback);
 }
 
 function controlsToggle(){
