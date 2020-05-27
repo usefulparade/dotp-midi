@@ -59,6 +59,7 @@
             <option value="triangle">tri</option>
             <option value="sawtooth">saw</option>
             <option value="square">square</option>
+            <option value="noise">noise</option>
           </select>
           
         <p class="sliderP">attack / release</p>
@@ -71,7 +72,14 @@
           <input type="range" min="0" max="100" value="100" class="slider halfsize" id="filterSlider" oninput="filterSliderChange()">
           
           <input type="range" min="0" max="100" value="20" class="slider halfsize" id="resSlider" oninput="filterSliderChange()">
-
+        
+        <p class="sliderP">delay</p>
+          <input type="range" min="0" max="100" value="0" class="slider" id="dlySlider" oninput="dlySliderChange()">
+          
+        <p class="sliderP">time / feedback</p>
+          <input type="range" min="0" max="100" value="50" class="slider halfsize" id="dlyTimeSlider" oninput="dlySliderChange()">
+          
+          <input type="range" min="0" max="100" value="50" class="slider halfsize" id="dlyFeedbackSlider" oninput="dlySliderChange()">
       </div>
 
       <p>~ ~ ~</p>
