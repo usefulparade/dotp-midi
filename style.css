@@ -203,7 +203,6 @@ select {
   font-family: 'Courier New', Courier, monospace;
   font-size: 1em;
   color: white;
-  
   padding: 5px;
 	width: 30%;
   box-sizing: border-box;
@@ -297,6 +296,7 @@ select option {
   width: 640px;
   max-height: 0px;
   transition: max-height 0.3s;
+  padding-top: 5px;
   padding-bottom: 5px;
 }
 
