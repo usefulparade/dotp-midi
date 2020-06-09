@@ -164,9 +164,9 @@ function setup() {
   
   filter.chain(dly);
   
-  dlySlider = select('#dlySlider');
-  timeSlider = select('#dlyTimeSlider');
-  feedbackSlider = select('#dlyFeedbackSlider');
+  dlySlider = document.getElementById('dlySlider');
+  timeSlider = document.getElementById('dlyTimeSlider');
+  feedbackSlider = document.getElementById('dlyFeedbackSlider');
 
   // envelopes & oscillators
   for (i=0;i<12;i++){
@@ -441,9 +441,11 @@ function mousePressed() {
           }
           // SEND MIDI DRONE START
           if (webMidiSupported){
-            for (j=8;j<10;j++){
-              WebMidi.outputs[output].playNote(notes[j].x, channel);
-              WebMidi.outputs[output].playNote(notes[j].y, channel);
+            if (WebMidi.outputs[output] != null){
+              for (j=8;j<10;j++){
+                WebMidi.outputs[output].playNote(notes[j].x, channel);
+                WebMidi.outputs[output].playNote(notes[j].y, channel);
+              }
             }
           }
         } else {
@@ -452,9 +454,11 @@ function mousePressed() {
           }
           // SEND MIDI DRONE STOP
           if (webMidiSupported){
-            for (j=8;j<10;j++){
-              WebMidi.outputs[output].stopNote(notes[j].x, channel);
-              WebMidi.outputs[output].stopNote(notes[j].y, channel);
+            if (WebMidi.outputs[output] != null){
+              for (j=8;j<10;j++){
+                WebMidi.outputs[output].stopNote(notes[j].x, channel);
+                WebMidi.outputs[output].stopNote(notes[j].y, channel);
+              }
             }
           }
         }
@@ -473,10 +477,13 @@ function triggerNote(c){
   oscillators[c].freq(midiToFreq(note));
 
   envelopes[c].play();
-
+  
   if (webMidiSupported){
-    WebMidi.outputs[planets[c].midiOutput].playNote(note, planets[c].midiChannel, {duration: 10});
+    if (WebMidi.outputs[planets[c].midiOutput] != null){
+      WebMidi.outputs[planets[c].midiOutput].playNote(note, planets[c].midiChannel, {duration: 10});
+    }
   }
+
   planets[c].activeNote = (planets[c].activeNote + 1) % 2;
 }
 
@@ -940,17 +947,17 @@ function midiCCHandler(e){
   }
   if (inputCCFunctionMap.dly == e.controller.number){
     console.log("delay changed by CC" + e.controller.number);
-    dlySlider.value = map(e.value, 0, 127, resSlider.min, resSlider.max);
+    dlySlider.value = map(e.value, 0, 127, dlySlider.min, dlySlider.max);
     dlySliderChange();
   }
   if (inputCCFunctionMap.dlyTime == e.controller.number){
     console.log("delay time changed by CC" + e.controller.number);
-    timeSlider.value = map(e.value, 0, 127, resSlider.min, resSlider.max);
+    timeSlider.value = map(e.value, 0, 127, timeSlider.min, timeSlider.max);
     dlySliderChange();
   }
   if (inputCCFunctionMap.dlyFeedback == e.controller.number){
     console.log("delay feedback changed by CC" + e.controller.number);
-    feedbackSlider.value = map(e.value, 0, 127, resSlider.min, resSlider.max);
+    feedbackSlider.value = map(e.value, 0, 127, feedbackSlider.min, feedbackSlider.max);
     dlySliderChange();
   }
 }
@@ -1189,9 +1196,11 @@ function makeMidiOptions(){
 }
 
 function dlySliderChange(){
-  dlyVol = map(dlySlider.value(), 0, 100, 0, 1);
-  dlyTime = map(timeSlider.value(), 0, 100, 0, 1);
-  dlyFeedback = map(feedbackSlider.value(), 0, 100, 0, 1);
+  console.log(dlySlider.value);
+
+  dlyVol = map(dlySlider.value, 0, 100, 0, 1);
+  dlyTime = map(timeSlider.value, 0, 100, 0, 1);
+  dlyFeedback = map(feedbackSlider.value, 0, 100, 0, 1);
   
   dly.amp(dlyVol);
   dly.delayTime(dlyTime);
